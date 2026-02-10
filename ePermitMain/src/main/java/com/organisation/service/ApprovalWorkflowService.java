@@ -1,7 +1,7 @@
-package com.organisation.approvalworkflow.service;
+package com.organisation.service;
 
-import com.organisation.approvalworkflow.dto.ApproveRejectRegistrationDTO;
-import com.organisation.approvalworkflow.dto.ApprovalResponseDTO;
+import com.organisation.dto.ApproveRejectRegistrationDTO;
+import com.organisation.dto.ApprovalResponseDTO;
 
 /**
  * Service interface for registration approval/rejection workflow

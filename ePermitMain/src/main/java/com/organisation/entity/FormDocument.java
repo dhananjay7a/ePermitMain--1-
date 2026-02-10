@@ -1,4 +1,4 @@
-package com.organisation.approvalworkflow.entity;
+package com.organisation.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

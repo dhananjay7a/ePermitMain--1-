@@ -1,4 +1,4 @@
-package com.organisation.approvalworkflow.service;
+package com.organisation.service;
 
 import com.organisation.model.RegistrationMstr;
 

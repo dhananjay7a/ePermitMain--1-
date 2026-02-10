@@ -1,6 +1,6 @@
-package com.organisation.approvalworkflow.repository;
+package com.organisation.repository;
 
-import com.organisation.approvalworkflow.entity.FormDocument;
+import com.organisation.entity.FormDocument;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

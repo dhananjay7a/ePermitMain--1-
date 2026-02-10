@@ -1,4 +1,4 @@
-package com.organisation.approvalworkflow.util;
+package com.organisation.util;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;

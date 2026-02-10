@@ -1,4 +1,4 @@
-package com.organisation.approvalworkflow.exception;
+package com.organisation.exception;
 
 /**
  * Custom exception for approval workflow operations

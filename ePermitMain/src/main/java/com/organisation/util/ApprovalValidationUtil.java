@@ -1,9 +1,10 @@
-package com.organisation.approvalworkflow.util;
+package com.organisation.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import com.organisation.constants.OrgConstants.REGISTRATION_STATUS;
+import com.organisation.exception.ApprovalWorkflowException;
 
 import java.time.LocalDate;
 
@@ -20,14 +21,14 @@ public class ApprovalValidationUtil {
     public void validateStatusTransition(String currentStatus, String approverType) {
 
         if (currentStatus == null || approverType == null) {
-            throw new com.organisation.approvalworkflow.exception.ApprovalWorkflowException("NULL_VALUE",
+            throw new com.organisation.exception.ApprovalWorkflowException("NULL_VALUE",
                     "Current status and approver type must not be null");
         }
 
         // FINAL_APPROVER must NOT act when DSIGN_PENDING (DP)
         if ("FINAL_APPROVER".equalsIgnoreCase(approverType)
                 && REGISTRATION_STATUS.DSIGN_PENDING.equalsIgnoreCase(currentStatus)) {
-            throw new com.organisation.approvalworkflow.exception.InvalidStatusTransitionException(
+            throw new com.organisation.exception.InvalidStatusTransitionException(
                     currentStatus, approverType);
         }
 
@@ -37,7 +38,7 @@ public class ApprovalValidationUtil {
                 || "DIGITAL_APPROVER".equalsIgnoreCase(approverType)) {
             if (REGISTRATION_STATUS.DIGITAL_SIGNED.equalsIgnoreCase(currentStatus)
                     || REGISTRATION_STATUS.DIGITAL_APPROVED.equalsIgnoreCase(currentStatus)) {
-                throw new com.organisation.approvalworkflow.exception.InvalidStatusTransitionException(
+                throw new com.organisation.exception.InvalidStatusTransitionException(
                         currentStatus, approverType);
             }
         }
@@ -47,22 +48,17 @@ public class ApprovalValidationUtil {
             if (!REGISTRATION_STATUS.PENDING.equalsIgnoreCase(currentStatus)
                     && !REGISTRATION_STATUS.SUBMITTED.equalsIgnoreCase(currentStatus)
                     && !REGISTRATION_STATUS.ENROLLED.equalsIgnoreCase(currentStatus)) {
-                throw new com.organisation.approvalworkflow.exception.InvalidStatusTransitionException(
+                throw new com.organisation.exception.InvalidStatusTransitionException(
                         currentStatus, approverType);
             }
         } else if ("FINAL_APPROVER".equalsIgnoreCase(approverType)) {
             if (!REGISTRATION_STATUS.SCRUTINY.equalsIgnoreCase(currentStatus)) {
-                throw new com.organisation.approvalworkflow.exception.InvalidStatusTransitionException(
+                throw new com.organisation.exception.InvalidStatusTransitionException(
                         currentStatus, approverType);
             }
         } else if ("DIGITAL_APPROVER".equalsIgnoreCase(approverType)) {
             if (!REGISTRATION_STATUS.FINAL_APPROVED.equalsIgnoreCase(currentStatus)) {
-                throw new com.organisation.approvalworkflow.exception.InvalidStatusTransitionException(
-                        currentStatus, approverType);
-            }
-        } else if ("DIGITAL_SIGN".equalsIgnoreCase(approverType)) {
-            if (!REGISTRATION_STATUS.DIGITAL_APPROVED.equalsIgnoreCase(currentStatus)) {
-                throw new com.organisation.approvalworkflow.exception.InvalidStatusTransitionException(
+                throw new com.organisation.exception.InvalidStatusTransitionException(
                         currentStatus, approverType);
             }
         }
@@ -85,52 +81,4 @@ public class ApprovalValidationUtil {
         }
     }
 
-    /**
-     * Check if organization category is a member category
-     */
-    /*
-     * public boolean isMemberCategory(String orgCategory) {
-     * if (orgCategory == null || orgCategory.isEmpty()) {
-     * return false;
-     * }
-     * // Non-member categories
-     * String[] nonMemberCategories = {
-     * "NON_MEMBER",
-     * "RENTER",
-     * "TEMPORARY"
-     * };
-     * 
-     * for (String category : nonMemberCategories) {
-     * if (category.equalsIgnoreCase(orgCategory)) {
-     * return false;
-     * }
-     * }
-     * return true;
-     * }
-     */
-
-    /**
-     * Check if organization requires Form 5 (Private Market)
-     */
-    /*
-     * public boolean requiresFormFive(String orgCategory) {
-     * return "PRIVATE_MARKET".equalsIgnoreCase(orgCategory) ||
-     * "PRIVATE_MARKET_APPLICATION".equalsIgnoreCase(orgCategory);
-     * }
-     * 
-     * /**
-     * Check if organization requires Form 4 (Regular markets)
-     */
-    /*
-     * public boolean requiresFormFour(String orgCategory) {
-     * return !requiresFormFive(orgCategory) && isMemberCategory(orgCategory);
-     * }
-     */
-
-}
-
-class ApprovalWorkflowException extends RuntimeException {
-    ApprovalWorkflowException(String code, String message) {
-        super(message);
-    }
 }

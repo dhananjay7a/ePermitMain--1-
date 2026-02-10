@@ -1,8 +1,8 @@
-package com.organisation.approvalworkflow.controller;
+package com.organisation.controller;
 
-import com.organisation.approvalworkflow.dto.ApproveRejectRegistrationDTO;
-import com.organisation.approvalworkflow.dto.ApprovalResponseDTO;
-import com.organisation.approvalworkflow.service.ApprovalWorkflowService;
+import com.organisation.dto.ApproveRejectRegistrationDTO;
+import com.organisation.dto.ApprovalResponseDTO;
+import com.organisation.service.ApprovalWorkflowService;
 import com.epermit.register.responsehandler.ApiResponses;
 import com.epermit.register.responsehandler.ResponseBean;
 import lombok.extern.slf4j.Slf4j;

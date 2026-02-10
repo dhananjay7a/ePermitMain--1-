@@ -1,4 +1,4 @@
-package com.organisation.approvalworkflow.exception;
+package com.organisation.exception;
 
 /**
  * Exception for invalid status transitions during approval workflow

@@ -1,4 +1,4 @@
-package com.organisation.approvalworkflow.exception;
+package com.organisation.exception;
 
 /**
  * Exception when registration is not found

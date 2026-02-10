@@ -1,9 +1,9 @@
-package com.organisation.approvalworkflow.config;
+package com.organisation.config;
 
-import com.organisation.approvalworkflow.dto.ApprovalResponseDTO;
-import com.organisation.approvalworkflow.exception.ApprovalWorkflowException;
-import com.organisation.approvalworkflow.exception.InvalidStatusTransitionException;
-import com.organisation.approvalworkflow.exception.RegistrationNotFoundException;
+import com.organisation.dto.ApprovalResponseDTO;
+import com.organisation.exception.ApprovalWorkflowException;
+import com.organisation.exception.InvalidStatusTransitionException;
+import com.organisation.exception.RegistrationNotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

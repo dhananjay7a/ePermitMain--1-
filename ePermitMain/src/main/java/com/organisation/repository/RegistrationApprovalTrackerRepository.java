@@ -1,6 +1,6 @@
-package com.organisation.approvalworkflow.repository;
+package com.organisation.repository;
 
-import com.organisation.approvalworkflow.entity.RegistrationApprovalTracker;
+import com.organisation.entity.RegistrationApprovalTracker;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

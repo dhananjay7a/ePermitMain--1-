@@ -1,4 +1,4 @@
-package com.organisation.approvalworkflow.entity;
+package com.organisation.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -58,10 +58,5 @@ public class RegistrationApprovalTracker {
 
     @Column(name = "created_by", length = 100)
     private String createdBy;
-
-    @PrePersist
-    public void prePersist() {
-        this.createdOn = LocalDateTime.now();
-    }
 
 }

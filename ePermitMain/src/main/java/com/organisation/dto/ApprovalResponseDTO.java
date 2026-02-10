@@ -1,4 +1,4 @@
-package com.organisation.approvalworkflow.dto;
+package com.organisation.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

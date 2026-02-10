@@ -1,4 +1,4 @@
-package com.organisation.approvalworkflow.service.impl;
+package com.organisation.service.impl;
 
 import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.io.font.constants.StandardFonts;
@@ -23,9 +23,9 @@ import com.itextpdf.layout.borders.DoubleBorder;
 import com.itextpdf.layout.borders.SolidBorder;
 import com.itextpdf.layout.element.Text;
 
-import com.organisation.approvalworkflow.exception.ApprovalWorkflowException;
-import com.organisation.approvalworkflow.service.PDFGenerationService;
-import com.organisation.approvalworkflow.util.CrunchifyQRCode;
+import com.organisation.exception.ApprovalWorkflowException;
+import com.organisation.service.PDFGenerationService;
+import com.organisation.util.CrunchifyQRCode;
 import com.organisation.constants.OrgConstants;
 import com.organisation.constants.OrgConstants.RENEWAL_STATUS;
 import com.organisation.model.RegistrationMstr;
