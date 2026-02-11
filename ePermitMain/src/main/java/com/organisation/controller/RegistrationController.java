@@ -702,7 +702,7 @@ public class RegistrationController {
 	 * }
 	 */
 
-	// Scrutiny/final approve/reject by me
+	// Scrutiny/final approve/reject by dhananjay pandit
 	@PostMapping("/approveRejectRegistration")
 	public ResponseEntity<ApiResponses> approveRejectRegistration(@RequestHeader("Authorization") String token,
 			@RequestBody ApproveRejectRegistrationDTO request) {

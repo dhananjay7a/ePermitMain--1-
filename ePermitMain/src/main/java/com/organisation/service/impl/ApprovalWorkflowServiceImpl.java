@@ -13,10 +13,8 @@ import com.organisation.service.PDFGenerationService;
 import com.organisation.util.ApprovalValidationUtil;
 import com.organisation.constants.OrgConstants.REGISTRATION_STATUS;
 import com.organisation.model.RegistrationMstr;
-import com.organisation.model.UserMapping;
 import com.organisation.repository.RegistrationMstrRepository;
 import com.organisation.repository.RegistrationStatusRepository;
-import com.organisation.repository.UserMappingRepository;
 import com.organisation.security.TokenService;
 import com.register.model.RegistrationStatus;
 
@@ -45,8 +43,10 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
     @Autowired
     private RegistrationApprovalTrackerRepository approvalTrackerRepository;
 
-    @Autowired
-    private UserMappingRepository userMappingRepository;
+    /*
+     * @Autowired
+     * private UserMappingRepository userMappingRepository;
+     */
 
     @Autowired
     private FormDocumentRepository formDocumentRepository;
@@ -125,7 +125,7 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
                 generatedFilePath = generateFormFour(registration);
             } else if (isApprove && request.getApproverType().equalsIgnoreCase("DIGITAL_APPROVER")) {
                 handleApproval(registration, request, newStatus);
-                createUserMarketMapping(registration);
+                // createUserMarketMapping(registration);
             } else {
                 handleRejection(registration, request, newStatus);
             }
@@ -232,35 +232,37 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
     /**
      * Create user-market mapping for approved registrations
      */
-    private void createUserMarketMapping(RegistrationMstr registration) {
-        try {
-            // Check if mapping already exists
-            String userId = "U_" + registration.getOrgId();
-
-            UserMapping existingMapping = userMappingRepository.findByUserId(userId);
-            if (existingMapping != null) {
-                log.info("User mapping already exists for userId: {}", userId);
-                return;
-            }
-
-            UserMapping userMapping = new UserMapping();
-            userMapping.setUserId(userId);
-            userMapping.setMarketCode(registration.getOrgBaseMarket());
-            userMapping.setOrgId(registration.getOrgId());
-            userMapping.setIsActive("Y");
-            userMapping.setCreatedOn(new java.sql.Timestamp(System.currentTimeMillis()));
-
-            userMappingRepository.save(userMapping);
-            log.info("User-market mapping created for userId: {}, marketCode: {}",
-                    userId, registration.getOrgBaseMarket());
-
-        } catch (Exception e) {
-            log.error("Error creating user-market mapping for OrgId: {}", registration.getOrgId(), e);
-            throw new ApprovalWorkflowException("USER_MAPPING_ERROR",
-                    "Failed to create user-market mapping: " + e.getMessage());
-        }
-    }
-
+    /*
+     * private void createUserMarketMapping(RegistrationMstr registration) {
+     * try {
+     * // Check if mapping already exists
+     * String userId = "U_" + registration.getOrgId();
+     * 
+     * UserMapping existingMapping = userMappingRepository.findByUserId(userId);
+     * if (existingMapping != null) {
+     * log.info("User mapping already exists for userId: {}", userId);
+     * return;
+     * }
+     * 
+     * UserMapping userMapping = new UserMapping();
+     * userMapping.setUserId(userId);
+     * userMapping.setMarketCode(registration.getOrgBaseMarket());
+     * userMapping.setOrgId(registration.getOrgId());
+     * userMapping.setIsActive("Y");
+     * userMapping.setCreatedOn(new java.sql.Timestamp(System.currentTimeMillis()));
+     * 
+     * userMappingRepository.save(userMapping);
+     * log.info("User-market mapping created for userId: {}, marketCode: {}",
+     * userId, registration.getOrgBaseMarket());
+     * 
+     * } catch (Exception e) {
+     * log.error("Error creating user-market mapping for OrgId: {}",
+     * registration.getOrgId(), e);
+     * throw new ApprovalWorkflowException("USER_MAPPING_ERROR",
+     * "Failed to create user-market mapping: " + e.getMessage());
+     * }
+     * }
+     */
     /**
      * Generate Form 4 for applicable organizations using iText
      */
