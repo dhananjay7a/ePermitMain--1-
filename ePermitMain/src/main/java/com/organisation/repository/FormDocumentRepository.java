@@ -10,7 +10,6 @@ import java.util.Optional;
 /**
  * Repository for FormDocument entity
  */
-@Repository
 public interface FormDocumentRepository extends JpaRepository<FormDocument, Long> {
 
     /**

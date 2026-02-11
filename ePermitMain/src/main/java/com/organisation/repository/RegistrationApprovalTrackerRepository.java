@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * Repository for RegistrationApprovalTracker entity
  */
-@Repository
+
 public interface RegistrationApprovalTrackerRepository extends JpaRepository<RegistrationApprovalTracker, Long> {
 
     /**

@@ -11,7 +11,6 @@ import java.util.List;
  * Repository for UserMapping entity
  * Manages user to market/organization mappings
  */
-@Repository
 public interface UserMappingRepository extends JpaRepository<UserMapping, String> {
 
     /**

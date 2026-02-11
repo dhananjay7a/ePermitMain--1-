@@ -94,6 +94,9 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
             if (orgId == null || orgId.isBlank()) {
                 throw new RuntimeException("orgId is required");
             }
+            if (request.getRegStatus() == null || request.getApproverType() == null || request.getRemarks() == null) {
+                throw new RuntimeException("regStatus, approverType and remarks are required");
+            }
 
             request.setApproverUserId(userId);
 
@@ -115,8 +118,14 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
             String newStatus = isApprove ? getApprovedStatus(request.getApproverType()) : REGISTRATION_STATUS.REJECTED;
 
             // Step 5: Handle approval-specific logic
-            if (isApprove) {
-                generatedFilePath = handleApproval(registration, request, newStatus);
+            if (isApprove && request.getApproverType().equalsIgnoreCase("SCRUNITY")) {
+                handleApproval(registration, request, newStatus);
+            } else if (isApprove && request.getApproverType().equalsIgnoreCase("FINAL_APPROVER")) {
+                handleApproval(registration, request, newStatus);
+                generatedFilePath = generateFormFour(registration);
+            } else if (isApprove && request.getApproverType().equalsIgnoreCase("DIGITAL_APPROVER")) {
+                handleApproval(registration, request, newStatus);
+                createUserMarketMapping(registration);
             } else {
                 handleRejection(registration, request, newStatus);
             }
@@ -155,33 +164,30 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
      * Handle approval logic including status update, market mapping, and form
      * generation
      */
-    private String handleApproval(RegistrationMstr registration, ApproveRejectRegistrationDTO request,
+    private void handleApproval(RegistrationMstr registration, ApproveRejectRegistrationDTO request,
             String newStatus) {
 
-        // Update resolution number if provided
         /*
-         * if (request.getResNo() != null && !request.getResNo().isEmpty()) {
-         * registration.setResolutionNo(request.getResNo());
+         * if ("FINAL_APPROVER".equalsIgnoreCase(request.getApproverType()) &&
+         * !registration.isLicenseExists() && request.getRegFeeValidity() != null) {
+         * validationUtil.validateFeeValidity(request.getRegFeeValidity(),
+         * request.getOrgId());
+         * registration.setRegFeeValidity(java.sql.Timestamp.valueOf(
+         * request.getRegFeeValidity().atStartOfDay()));
          * }
          */
-
-        // Update fee validity if required and provided
-        if ("FINAL_APPROVER".equalsIgnoreCase(request.getApproverType()) &&
-                !registration.isLicenseExists() && request.getRegFeeValidity() != null) {
-            validationUtil.validateFeeValidity(request.getRegFeeValidity(), request.getOrgId());
-            registration.setRegFeeValidity(java.sql.Timestamp.valueOf(
-                    request.getRegFeeValidity().atStartOfDay()));
-        }
 
         // Step 1: Create registration status record
         createRegistrationStatus(registration, newStatus, request);
 
-        // Step 2: Create user-market mapping for approved organizations
-        createUserMarketMapping(registration);
-
-        // Step 3: Generate forms four
-
-        return generateFormFour(registration);
+        /*
+         * // Step 2: Create user-market mapping for approved organizations
+         * createUserMarketMapping(registration);
+         * 
+         * // Step 3: Generate forms four
+         * 
+         * return generateFormFour(registration);
+         */
 
     }
 
@@ -307,6 +313,7 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
                     .remarks(request.getRemarks())
                     .newStatus(newStatus)
                     .createdBy(request.getApproverUserId())
+                    .createdOn(java.time.LocalDateTime.now())
                     .build();
 
             approvalTrackerRepository.save(tracker);
@@ -329,11 +336,9 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
         } else if ("FINAL_APPROVER".equalsIgnoreCase(approverType)) {
             return REGISTRATION_STATUS.DSIGN_PENDING;
         } else if ("DIGITAL_APPROVER".equalsIgnoreCase(approverType)) {
-            return REGISTRATION_STATUS.DIGITAL_APPROVED;
-        } else if ("DIGITAL_SIGN".equalsIgnoreCase(approverType)) {
-            return REGISTRATION_STATUS.DIGITAL_SIGNED;
+            return REGISTRATION_STATUS.FINAL_APPROVED;
         }
-        return REGISTRATION_STATUS.DSIGN_PENDING;
+        return REGISTRATION_STATUS.PENDING; // Default fallback
     }
 
     /**

@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-ePermitMainApplication<ePermitMain>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.organisation.ePermitMainApplication",
+            "projectName": "ePermitMain",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
