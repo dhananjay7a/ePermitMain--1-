@@ -35,7 +35,7 @@ public class ApprovalWorkflowController {
         ResponseBean responseBean = new ResponseBean();
 
         try {
-            log.info("Received plain text approval request for OrgId: {}", request.getOrgId());
+            log.info("Received  approval request for OrgId: {}", request.getOrgId());
 
             // Process approval
 

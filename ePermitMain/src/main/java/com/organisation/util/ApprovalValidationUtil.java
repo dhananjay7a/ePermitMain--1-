@@ -57,7 +57,7 @@ public class ApprovalValidationUtil {
                         currentStatus, approverType);
             }
         } else if ("DIGITAL_APPROVER".equalsIgnoreCase(approverType)) {
-            if (!REGISTRATION_STATUS.FINAL_APPROVED.equalsIgnoreCase(currentStatus)) {
+            if (!REGISTRATION_STATUS.DSIGN_PENDING.equalsIgnoreCase(currentStatus)) {
                 throw new com.organisation.exception.InvalidStatusTransitionException(
                         currentStatus, approverType);
             }
