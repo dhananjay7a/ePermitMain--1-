@@ -13,6 +13,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -732,6 +734,70 @@ public class RegistrationController {
 			responseBean.AllResponse("Error", e.getMessage());
 			return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	// approve reject with pdf file upload by dhananjay pandit
+	@PostMapping("/approveRejectRegistration")
+	public ResponseEntity<ApiResponses> approveRejectRegistration(
+			@RequestHeader("Authorization") String token,
+			@RequestBody ApproveRejectRegistrationDTO request,
+			@RequestPart("file") MultipartFile pdfFile) {
+
+		ResponseBean responseBean = new ResponseBean();
+
+		if (pdfFile == null || pdfFile.isEmpty()) {
+			log.error("No file uploaded for approval request of OrgId: {}", request.getOrgId());
+			responseBean.AllResponse("Error", "PDF file is required for approval.");
+			return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.BAD_REQUEST);
+		}
+
+		try {
+
+			// Process approval
+
+			ApprovalResponseDTO response = approvalWorkflowService
+					.approveRejectRegistrationWithFile(token, request, pdfFile);
+			if (response == null || response.getErrorCode() < 0) {
+				log.error("Approval processing failed for OrgId: {}", request.getOrgId());
+				responseBean.AllResponse("Error", response.getMessage());
+				return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			responseBean.AllResponse("Success", response);
+
+			log.info("Approval request processed successfully for OrgId: {}", request.getOrgId());
+
+			return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.OK);
+
+		} catch (Exception e) {
+			log.error("Error processing plain text approval request", e);
+			responseBean.AllResponse("Error", e.getMessage());
+			return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@GetMapping("/get-signed-pdf")
+	public ResponseEntity<ApiResponses> getSignedPdf(@RequestHeader("Authorization") String token,
+			@RequestParam String orgId) {
+		ResponseBean responseBean = new ResponseBean();
+		try {
+			byte[] file = approvalWorkflowService.getSignedPdf(token, orgId);
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_PDF);
+			headers.setContentDisposition(ContentDisposition.builder("inline") // or "attachment"
+					.filename(orgId + "_document.pdf")
+					.build());
+			if (file == null || file.length == 0) {
+				responseBean.AllResponse("Error", "Signed PDF not found for OrgId: " + orgId);
+				return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.NOT_FOUND);
+			}
+			responseBean.AllResponse("Success", file);
+			return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Error fetching signed PDF for OrgId: {}", orgId, e);
+			responseBean.AllResponse("Error", "Error fetching signed PDF: " + e.getMessage());
+			return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 	}
 
 	@GetMapping("/api/docs/view/{id}")

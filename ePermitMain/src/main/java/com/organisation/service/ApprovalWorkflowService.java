@@ -1,6 +1,9 @@
 package com.organisation.service;
 
 import com.organisation.dto.ApproveRejectRegistrationDTO;
+
+import org.springframework.web.multipart.MultipartFile;
+
 import com.organisation.dto.ApprovalResponseDTO;
 
 /**
@@ -15,9 +18,14 @@ public interface ApprovalWorkflowService {
      */
     ApprovalResponseDTO approveRejectRegistration(String token, ApproveRejectRegistrationDTO request);
 
+    ApprovalResponseDTO approveRejectRegistrationWithFile(String token, ApproveRejectRegistrationDTO request,
+            MultipartFile pdfFile);
+
     /**
      * Get approval history for a specific organization
      */
     Object getApprovalHistory(String orgId);
+
+    byte[] getSignedPdf(String token, String orgId);
 
 }

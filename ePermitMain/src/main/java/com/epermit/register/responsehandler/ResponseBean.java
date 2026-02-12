@@ -11,11 +11,12 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ResponseBean {
     @Autowired
     private ApiResponses response;
+
     private HttpServletResponse getHttpServletResponse() {
-        ServletRequestAttributes attributes = 
-            (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         return (attributes != null) ? attributes.getResponse() : null;
     }
+
     public ApiResponses getResponse() {
         return response;
     }
@@ -23,7 +24,6 @@ public class ResponseBean {
     public void setResponse(ApiResponses response) {
         this.response = response;
     }
-
 
     public void AllResponse(String type, Object data) {
         if (this.response == null) {
@@ -36,47 +36,47 @@ public class ResponseBean {
         switch (type) {
             case "Success":
                 this.response.setCode("200");
-                this.response.setMessage("Success");                
+                this.response.setMessage("Success");
                 this.response.setData(data);
                 break;
             case "Exists":
                 this.response.setCode("100");
-                this.response.setMessage("Already Exists");                
+                this.response.setMessage("Already Exists");
                 this.response.setData(data);
                 break;
             case "SuccessUpdt":
                 this.response.setCode("200");
-                this.response.setMessage("Update Successfully !!");  
+                this.response.setMessage("Update Successfully !!");
                 break;
             case "OTP":
                 this.response.setCode("200");
-                this.response.setMessage("OTP Generated");                
+                this.response.setMessage("OTP Generated");
                 this.response.setData(data);
                 break;
             case "First":
                 this.response.setCode("403");
-                this.response.setMessage("First Time");                
+                this.response.setMessage("First Time");
                 this.response.setData(data);
                 break;
             case "MAXOTP":
                 this.response.setCode("429");
-                this.response.setMessage("Maximum OTP requests reached. Please try again after 10 Minutes.");                
+                this.response.setMessage("Maximum OTP requests reached. Please try again after 10 Minutes.");
                 break;
             case "PWDSAME":
                 this.response.setCode("400");
-                this.response.setMessage("Password is same as your Last 3 Password !!");                
+                this.response.setMessage("Password is same as your Last 3 Password !!");
                 break;
             case "PWDINVAL":
                 this.response.setCode("400");
-                this.response.setMessage("Password Format is Not Matched !!");                
+                this.response.setMessage("Password Format is Not Matched !!");
                 break;
             case "PWDCHANGE":
                 this.response.setCode("200");
-                this.response.setMessage("Password has been Chanded Succesfully !!");                
+                this.response.setMessage("Password has been Chanded Succesfully !!");
                 break;
             case "Pw_Expire":
                 this.response.setCode("205");
-                this.response.setMessage("Password Expired");                
+                this.response.setMessage("Password Expired");
                 this.response.setData(data);
                 break;
             case "Expired":
@@ -97,6 +97,7 @@ public class ResponseBean {
             case "Error":
                 this.response.setCode("400");
                 this.response.setMessage("Something went wrong");
+                this.response.setData(data);
                 break;
             case "Nulltype":
                 this.response.setCode("400");
@@ -125,26 +126,26 @@ public class ResponseBean {
             case "Unauthorized":
                 this.response.setCode("400");
                 this.response.setMessage("Unauthorized");
-                break; 
+                break;
             case "TokenIdeal":
-                //httpResponse.setStatus(HttpServletResponse.SC_OK); // 200
+                // httpResponse.setStatus(HttpServletResponse.SC_OK); // 200
                 this.response.setCode("100");
                 this.response.setMessage("Token is Ideal !");
                 this.response.setData(data);
                 break;
             case "Partial":
-                //httpResponse.setStatus(HttpServletResponse.SC_OK); // 200
+                // httpResponse.setStatus(HttpServletResponse.SC_OK); // 200
                 this.response.setCode("200");
                 this.response.setMessage("Error");
                 this.response.setData(data);
                 break;
             case "Duplicate":
-                //httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404
+                // httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404
                 this.response.setCode("404");
                 this.response.setMessage("Duplicate !!");
                 break;
             case "NoContent":
-                //httpResponse.setStatus(HttpServletResponse.SC_NO_CONTENT); // 204
+                // httpResponse.setStatus(HttpServletResponse.SC_NO_CONTENT); // 204
                 this.response.setCode("204");
                 this.response.setMessage("No Data Given !!");
                 break;
@@ -152,20 +153,20 @@ public class ResponseBean {
                 this.response.setCode("401");
                 this.response.setMessage("Invalid or Expired Token");
                 break;
-            
+
             case "NoDataFound":
                 this.response.setCode("404");
                 this.response.setMessage("No Data Found");
                 this.response.setData(null);
                 break;
-                
+
             case "FeeNotPaid":
                 this.response.setCode("400");
                 this.response.setMessage("Registration fee not paid");
                 break;
-                }
+        }
     }
-    
+
     public void InsertResponse(String type) {
         if (this.response == null) {
             this.response = new ApiResponses();
@@ -174,15 +175,15 @@ public class ResponseBean {
         switch (type) {
             case "Success":
                 this.response.setCode("200");
-                this.response.setMessage("Data Saved Successfully");                
+                this.response.setMessage("Data Saved Successfully");
                 break;
             case "Fail":
                 this.response.setCode("200");
-                this.response.setMessage("Data Not Saved,Try Again later !");                
+                this.response.setMessage("Data Not Saved,Try Again later !");
                 break;
             case "InvalidEmail":
                 this.response.setCode("400");
-                this.response.setMessage("Invalid Email Format");                
+                this.response.setMessage("Invalid Email Format");
                 break;
             case "InvalidMobile":
                 this.response.setCode("400");
@@ -210,7 +211,5 @@ public class ResponseBean {
                 break;
         }
     }
-    
- 
 
 }

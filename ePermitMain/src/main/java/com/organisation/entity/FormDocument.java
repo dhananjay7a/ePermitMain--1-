@@ -34,6 +34,9 @@ public class FormDocument {
     @Column(name = "file_name", length = 255)
     private String fileName;
 
+    @Column(name = "form_status", length = 20)
+    private String formStatus;
+
     @Column(name = "file_path", columnDefinition = "TEXT")
     private String filePath;
 

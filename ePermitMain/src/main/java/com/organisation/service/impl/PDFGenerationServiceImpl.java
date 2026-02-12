@@ -58,6 +58,7 @@ public class PDFGenerationServiceImpl implements PDFGenerationService {
     @Autowired
     private RegisterAdditionalDetailsTempRepository additionalDetailsTempRepo;
 
+    private static final String FORM_FOUR_FOLDER_NAME = "form4";
     private static final String FORM_FOUR_FILENAME = "Form4.pdf";
     private static final String DEFAULT_PLACEHOLDER = "............................";
 
@@ -128,8 +129,8 @@ public class PDFGenerationServiceImpl implements PDFGenerationService {
             throw new ApprovalWorkflowException("FORM4_ERROR", "Registration master data is null");
         }
 
-        String orgId = safeString(regMstr.getOrgId(), "UNKNOWN");
-        String basePath = pdfStoragePath + orgId;
+        String orgId = safeString(regMstr.getOrgId(), "USER_ORG");
+        String basePath = pdfStoragePath + orgId + FORM_FOUR_FOLDER_NAME;
         String filePath = basePath + "/" + FORM_FOUR_FILENAME;
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");

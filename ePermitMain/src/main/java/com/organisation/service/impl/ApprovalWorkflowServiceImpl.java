@@ -21,8 +21,15 @@ import com.register.model.RegistrationStatus;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -63,6 +70,12 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
     @Autowired
     private TokenService ts;
 
+    @Value("${file.signed.pdf.dir:./signed-pdf/}")
+    private String signedPdfStoragePath;
+
+    private static final String FORM_FOUR_FILENAME = "Form4.pdf";
+    private static final String FORM_FOUR_FOLDER_NAME = "form4";
+
     /**
      * Process approval or rejection of registration with complete transaction
      * handling
@@ -71,7 +84,7 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
     @Transactional
     public ApprovalResponseDTO approveRejectRegistration(String token, ApproveRejectRegistrationDTO request) {
 
-        String generatedFilePath = null;
+        String generatedFilePath = "";
 
         try {
             log.info("Processing approval/rejection for OrgId: {}, Action: {}, ApproverType: {}",
@@ -155,8 +168,84 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
             return buildErrorResponse(e.getErrorCode(), e.getMessage(), "VALIDATION_FAILED", request.getOrgId());
         } catch (Exception e) {
             log.error("Unexpected error during approval processing", e);
-            return buildErrorResponse("INTERNAL_ERROR", "An unexpected error occurred: " + e.getMessage(), "FAILED",
+            return buildErrorResponse("-1", "An unexpected error occurred: " + e.getMessage(), "FAILED",
                     request.getOrgId());
+        }
+    }
+
+    // uplaod signed pdf and save path in db
+    @Override
+    public ApprovalResponseDTO approveRejectRegistrationWithFile(String token, ApproveRejectRegistrationDTO request,
+            MultipartFile pdfFile) {
+        try {
+            // Validate file
+            if (pdfFile == null || pdfFile.isEmpty() || !pdfFile.getContentType().equalsIgnoreCase("application/pdf")) {
+                throw new RuntimeException("PDF file is required for approval.");
+            }
+
+            String orgId = request.getOrgId();
+
+            // Create directory
+            Path baseDir = Paths.get(signedPdfStoragePath, orgId, FORM_FOUR_FOLDER_NAME);
+            Files.createDirectories(baseDir);
+
+            // Resolve file path
+            Path targetFile = baseDir.resolve(FORM_FOUR_FILENAME);
+
+            // Process approval
+            ApprovalResponseDTO response = approveRejectRegistration(token, request);
+
+            if (response.getErrorCode() == 0 && "SUCCESS".equalsIgnoreCase(response.getStatus())) {
+                // Save file
+                Files.copy(pdfFile.getInputStream(), targetFile);
+
+                formDocumentRepository.save(FormDocument.builder()
+                        .orgId(orgId)
+                        .formType("FORM_FOUR")
+                        .fileName(FORM_FOUR_FILENAME)
+                        .formStatus("SIGNED")
+                        .filePath(targetFile.toString())
+                        .createdBy(request.getApproverUserId())
+                        .build());
+
+                response.setFilePath(targetFile.toString());
+                log.info("PDF saved at {}", targetFile);
+            } else {
+                log.error("Approval processing failed for OrgId: {}, cannot save PDF", orgId);
+                response.setErrorCode(1);
+                response.setStatus("FAILED");
+                response.setMessage("Approval processing failed, PDF not saved");
+
+            }
+            return response;
+        } catch (IOException e) {
+            log.error("IO error while saving PDF for OrgId: {}", request.getOrgId(), e);
+            return buildErrorResponse("-1", "Failed to save PDF file: " + e.getMessage(), "FAILED", request.getOrgId());
+        } catch (Exception e) {
+            log.error("Error processing approval with file for OrgId: {}", request.getOrgId(), e);
+            return buildErrorResponse("-1",
+                    "Failed to process approval with file: " + e.getMessage(),
+                    "FAILED", request.getOrgId());
+        }
+
+    }
+
+    // download signed pdf
+    @Override
+    public byte[] getSignedPdf(String token, String orgId) {
+        try {
+            Optional<FormDocument> formDocOpt = formDocumentRepository
+                    .findByOrgIdAndFormTypeAndFormStatus(orgId, "FORM_FOUR", "SIGNED");
+            if (formDocOpt.isPresent()) {
+                String filePath = formDocOpt.get().getFilePath();
+                return Files.readAllBytes(Paths.get(filePath));
+            } else {
+                log.error("No signed Form 4 found for OrgId: {}", orgId);
+                throw new RuntimeException("No signed Form 4 found for OrgId: " + orgId);
+            }
+        } catch (IOException e) {
+            log.error("Error reading signed PDF for OrgId: {}", orgId, e);
+            throw new RuntimeException("Failed to read signed PDF for OrgId: " + orgId, e);
         }
     }
 
@@ -277,6 +366,7 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
                         .orgId(registration.getOrgId())
                         .formType("FORM_FOUR")
                         .fileName("Form4_" + registration.getOrgId() + ".pdf")
+                        .formStatus("UNSIGNED")
                         .filePath(filePath)
                         .createdBy("SYSTEM")
                         .build();
