@@ -28,4 +28,6 @@ public interface ApprovalWorkflowService {
 
     byte[] getSignedPdf(String token, String orgId);
 
+    byte[] getUnsignedPdf(String token, String orgId);
+
 }

@@ -47,7 +47,7 @@ public class ApprovalValidationUtil {
         if ("SCRUTINY".equalsIgnoreCase(approverType)) {
             if (!REGISTRATION_STATUS.PENDING.equalsIgnoreCase(currentStatus)
                     && !REGISTRATION_STATUS.SUBMITTED.equalsIgnoreCase(currentStatus)
-                    && !REGISTRATION_STATUS.ENROLLED.equalsIgnoreCase(currentStatus)) {
+                    && !REGISTRATION_STATUS.SAVED.equalsIgnoreCase(currentStatus)) {
                 throw new com.organisation.exception.InvalidStatusTransitionException(
                         currentStatus, approverType);
             }

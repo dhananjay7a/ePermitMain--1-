@@ -26,11 +26,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import java.nio.file.StandardCopyOption;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -138,6 +141,7 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
                 generatedFilePath = generateFormFour(registration);
             } else if (isApprove && request.getApproverType().equalsIgnoreCase("DIGITAL_APPROVER")) {
                 handleApproval(registration, request, newStatus);
+                registration.setRegFeeValidity(Timestamp.valueOf(request.getRegFeeValidity().atStartOfDay()));
                 // createUserMarketMapping(registration);
             } else {
                 handleRejection(registration, request, newStatus);
@@ -186,30 +190,30 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
             String orgId = request.getOrgId();
 
             // Create directory
-            Path baseDir = Paths.get(signedPdfStoragePath, orgId, FORM_FOUR_FOLDER_NAME);
-            Files.createDirectories(baseDir);
-
-            // Resolve file path
-            Path targetFile = baseDir.resolve(FORM_FOUR_FILENAME);
-
+            String path = signedPdfStoragePath + "/" + orgId + "/" + FORM_FOUR_FOLDER_NAME;
+            Path filePath = Paths.get(path, FORM_FOUR_FILENAME);
+            File directory = new File(path);
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
             // Process approval
             ApprovalResponseDTO response = approveRejectRegistration(token, request);
 
             if (response.getErrorCode() == 0 && "SUCCESS".equalsIgnoreCase(response.getStatus())) {
                 // Save file
-                Files.copy(pdfFile.getInputStream(), targetFile);
+                Files.copy(pdfFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
                 formDocumentRepository.save(FormDocument.builder()
                         .orgId(orgId)
                         .formType("FORM_FOUR")
-                        .fileName(FORM_FOUR_FILENAME)
+                        .fileName(orgId + "_" + FORM_FOUR_FILENAME)
                         .formStatus("SIGNED")
-                        .filePath(targetFile.toString())
+                        .filePath(filePath.toString().replace("\\", "/"))
                         .createdBy(request.getApproverUserId())
                         .build());
 
-                response.setFilePath(targetFile.toString());
-                log.info("PDF saved at {}", targetFile);
+                response.setFilePath(filePath.toString().replace("\\", "/"));
+                log.info("PDF saved at {}", filePath.toString());
             } else {
                 log.error("Approval processing failed for OrgId: {}, cannot save PDF", orgId);
                 response.setErrorCode(1);
@@ -246,6 +250,26 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
         } catch (IOException e) {
             log.error("Error reading signed PDF for OrgId: {}", orgId, e);
             throw new RuntimeException("Failed to read signed PDF for OrgId: " + orgId, e);
+        }
+    }
+
+    // download unsigned pdf
+    @Override
+    public byte[] getUnsignedPdf(String token, String orgId) {
+        try {
+            Optional<FormDocument> formDocOpt = formDocumentRepository
+                    .findByOrgIdAndFormTypeAndFormStatus(orgId, "FORM_FOUR", "UNSIGNED");
+            if (formDocOpt.isPresent()) {
+                String filePath = formDocOpt.get().getFilePath();
+                System.out.println("Unsigned PDF file path: " + filePath);
+                return Files.readAllBytes(Paths.get(filePath));
+            } else {
+                log.error("No unsigned Form 4 found for OrgId: {}", orgId);
+                throw new RuntimeException("No unsigned Form 4 found for OrgId: " + orgId);
+            }
+        } catch (IOException e) {
+            log.error("Error reading unsigned PDF for OrgId: {}", orgId, e);
+            throw new RuntimeException("Failed to read unsigned PDF for OrgId: " + orgId, e);
         }
     }
 

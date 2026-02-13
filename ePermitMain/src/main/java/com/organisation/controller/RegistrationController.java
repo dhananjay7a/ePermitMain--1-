@@ -737,10 +737,10 @@ public class RegistrationController {
 	}
 
 	// approve reject with pdf file upload by dhananjay pandit
-	@PostMapping("/approveRejectRegistration")
+	@PostMapping("/approveRejectRegistration/with-file")
 	public ResponseEntity<ApiResponses> approveRejectRegistration(
 			@RequestHeader("Authorization") String token,
-			@RequestBody ApproveRejectRegistrationDTO request,
+			@RequestPart("request") ApproveRejectRegistrationDTO request,
 			@RequestPart("file") MultipartFile pdfFile) {
 
 		ResponseBean responseBean = new ResponseBean();
@@ -775,29 +775,83 @@ public class RegistrationController {
 		}
 	}
 
-	@GetMapping("/get-signed-pdf")
-	public ResponseEntity<ApiResponses> getSignedPdf(@RequestHeader("Authorization") String token,
-			@RequestParam String orgId) {
-		ResponseBean responseBean = new ResponseBean();
+	@GetMapping("/get-signed-pdf/{orgId}")
+	public ResponseEntity<byte[]> getSignedPdf(@RequestHeader("Authorization") String token,
+			@PathVariable String orgId) {
 		try {
-			byte[] file = approvalWorkflowService.getSignedPdf(token, orgId);
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_PDF);
-			headers.setContentDisposition(ContentDisposition.builder("inline") // or "attachment"
-					.filename(orgId + "_document.pdf")
-					.build());
-			if (file == null || file.length == 0) {
-				responseBean.AllResponse("Error", "Signed PDF not found for OrgId: " + orgId);
-				return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.NOT_FOUND);
+			// Fetch PDF bytes from service
+			byte[] fileBytes = approvalWorkflowService.getSignedPdf(token, orgId);
+
+			// Validate result
+			if (fileBytes == null || fileBytes.length == 0) {
+				log.warn("Signed PDF not found or empty for OrgId: {}", orgId);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 			}
-			responseBean.AllResponse("Success", file);
-			return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.OK);
+
+			// Return PDF with proper headers
+			return ResponseEntity.ok()
+					.contentType(MediaType.APPLICATION_PDF)
+					.header(HttpHeaders.CONTENT_DISPOSITION,
+							"inline; filename=" + orgId + "_Form4.pdf")
+					.contentLength(fileBytes.length)
+					.body(fileBytes);
+
+		} catch (IllegalArgumentException e) {
+			// Validation / bad input errors
+			log.error("Invalid request for OrgId {}: {}", orgId, e.getMessage());
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+		} catch (RuntimeException e) {
+			// Business / service-level errors
+			log.error("Business error while fetching signed PDF for OrgId {}", orgId, e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
 		} catch (Exception e) {
-			log.error("Error fetching signed PDF for OrgId: {}", orgId, e);
-			responseBean.AllResponse("Error", "Error fetching signed PDF: " + e.getMessage());
-			return new ResponseEntity<>(responseBean.getResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
+			// Absolute fallback (should rarely happen)
+			log.error("Unexpected error while fetching signed PDF for OrgId {}", orgId, e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
+	}
+
+	@GetMapping("/get-unsigned-pdf/{orgId}")
+	public ResponseEntity<byte[]> getUnsignedPdf(
+			@RequestHeader("Authorization") String token,
+			@PathVariable String orgId) {
+
+		try {
+			// Fetch PDF bytes from service
+			byte[] fileBytes = approvalWorkflowService.getUnsignedPdf(token, orgId);
+
+			// Validate result
+			if (fileBytes == null || fileBytes.length == 0) {
+				log.warn("Unsigned PDF not found or empty for OrgId: {}", orgId);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+			}
+
+			// Return PDF with proper headers
+			return ResponseEntity.ok()
+					.contentType(MediaType.APPLICATION_PDF)
+					.header(HttpHeaders.CONTENT_DISPOSITION,
+							"inline; filename=" + orgId + "_Form4.pdf")
+					.contentLength(fileBytes.length)
+					.body(fileBytes);
+
+		} catch (IllegalArgumentException e) {
+			// Validation / bad input errors
+			log.error("Invalid request for OrgId {}: {}", orgId, e.getMessage());
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+		} catch (RuntimeException e) {
+			// Business / service-level errors
+			log.error("Business error while fetching unsigned PDF for OrgId {}", orgId, e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
+		} catch (Exception e) {
+			// Absolute fallback (should rarely happen)
+			log.error("Unexpected error while fetching unsigned PDF for OrgId {}", orgId, e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
 	}
 
 	@GetMapping("/api/docs/view/{id}")

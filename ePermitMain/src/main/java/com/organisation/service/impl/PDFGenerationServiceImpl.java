@@ -130,7 +130,7 @@ public class PDFGenerationServiceImpl implements PDFGenerationService {
         }
 
         String orgId = safeString(regMstr.getOrgId(), "USER_ORG");
-        String basePath = pdfStoragePath + orgId + FORM_FOUR_FOLDER_NAME;
+        String basePath = pdfStoragePath + orgId + "/" + FORM_FOUR_FOLDER_NAME;
         String filePath = basePath + "/" + FORM_FOUR_FILENAME;
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
