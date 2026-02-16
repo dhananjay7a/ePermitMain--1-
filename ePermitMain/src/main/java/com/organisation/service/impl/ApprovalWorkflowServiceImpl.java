@@ -141,7 +141,7 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
                 generatedFilePath = generateFormFour(registration);
             } else if (isApprove && request.getApproverType().equalsIgnoreCase("DIGITAL_APPROVER")) {
                 handleApproval(registration, request, newStatus);
-                registration.setRegFeeValidity(Timestamp.valueOf(request.getRegFeeValidity().atStartOfDay()));
+                // registration.setRegFeeValidity(Timestamp.valueOf(request.getRegFeeValidity().atStartOfDay()));
                 // createUserMarketMapping(registration);
             } else {
                 handleRejection(registration, request, newStatus);
@@ -239,7 +239,7 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
     public byte[] getSignedPdf(String token, String orgId) {
         try {
             Optional<FormDocument> formDocOpt = formDocumentRepository
-                    .findByOrgIdAndFormTypeAndFormStatus(orgId, "FORM_FOUR", "SIGNED");
+                    .findFirstByOrgIdAndFormTypeAndFormStatusOrderByFormDocIdDesc(orgId, "FORM_FOUR", "SIGNED");
             if (formDocOpt.isPresent()) {
                 String filePath = formDocOpt.get().getFilePath();
                 return Files.readAllBytes(Paths.get(filePath));
@@ -258,7 +258,7 @@ public class ApprovalWorkflowServiceImpl implements ApprovalWorkflowService {
     public byte[] getUnsignedPdf(String token, String orgId) {
         try {
             Optional<FormDocument> formDocOpt = formDocumentRepository
-                    .findByOrgIdAndFormTypeAndFormStatus(orgId, "FORM_FOUR", "UNSIGNED");
+                    .findFirstByOrgIdAndFormTypeAndFormStatusOrderByFormDocIdDesc(orgId, "FORM_FOUR", "UNSIGNED");
             if (formDocOpt.isPresent()) {
                 String filePath = formDocOpt.get().getFilePath();
                 System.out.println("Unsigned PDF file path: " + filePath);
