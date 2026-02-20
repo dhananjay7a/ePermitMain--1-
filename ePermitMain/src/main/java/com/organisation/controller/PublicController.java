@@ -14,8 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.epermit.register.dto.DistrictPinCodeResponseDTO;
 import com.epermit.register.dto.DistrictResponseDTO;
+import com.epermit.register.dto.PinCodeRequestDTO;
 import com.epermit.register.dto.StateRequestDTO;
+import com.epermit.register.responsehandler.ApiResponses;
+import com.epermit.register.responsehandler.ResponseBean;
+import com.organisation.model.DistrictPinCodeMstr;
 import com.organisation.model.OrgConstitution;
 import com.organisation.model.StateDistrictMaster;
 import com.organisation.model.StateMaster;
@@ -35,7 +40,7 @@ public class PublicController {
 	private StateDistrictRepository distRepo;
 
 	@Autowired
-	private PublicService publicService;	
+	private PublicService publicService;
 
 	private static final Logger log = LoggerFactory.getLogger(PublicController.class);
 
@@ -72,29 +77,52 @@ public class PublicController {
 		}
 	}
 
+	@PostMapping("/getAllPinCodes")
+	public ResponseEntity<ApiResponses> getAllPinCodes(@RequestBody PinCodeRequestDTO request) {
+		log.info("Inside getAllPinCodes():: publicController");
+		ResponseBean responseBean = new ResponseBean();
+		try {
+			List<DistrictPinCodeResponseDTO> pinCodes = publicService
+					.getPinCodesByStateCodeAndDistrictCode(request.getStateCode(), request.getDistrictCode());
+			System.out.println("Fetched Pin Codes: " + pinCodes);
+			if (pinCodes != null && !pinCodes.isEmpty()) {
+				responseBean.AllResponse("Success", pinCodes);
+			} else {
+				responseBean.AllResponse("NO_DATA_FOUND", null);
+				log.warn("No pin codes found for State Code: {}, District Code: {}", request.getStateCode(),
+						request.getDistrictCode());
+			}
+			log.info("Exiting from getAllPinCodes():: publicController");
+			return ResponseEntity.ok(responseBean.getResponse());
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseBean.AllResponse("ERROR", null);
+			log.error("Error fetching pin codes for State Code: {}, District Code: {}. Exception: {}",
+					request.getStateCode(),
+					request.getDistrictCode(), e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBean.getResponse());
+		}
+	}
 
 	@GetMapping("/getConstitutions")
 	public ResponseEntity<?> getConstitution() {
-	    log.info("Inside getConstitution() :: PublicController");
-	    try {
-	        List<OrgConstitution> cons = publicService.getConstitution();
+		log.info("Inside getConstitution() :: PublicController");
+		try {
+			List<OrgConstitution> cons = publicService.getConstitution();
 
-	        if (cons == null || cons.isEmpty()) {
-	            log.warn("No constitutions found");
-	            return ResponseEntity.noContent().build(); // 204 No Content
-	        }
+			if (cons == null || cons.isEmpty()) {
+				log.warn("No constitutions found");
+				return ResponseEntity.noContent().build(); // 204 No Content
+			}
 
-	        log.info("Exiting from getConstitution() :: PublicController");
-	        return ResponseEntity.ok(cons);
+			log.info("Exiting from getConstitution() :: PublicController");
+			return ResponseEntity.ok(cons);
 
-	    } catch (Exception e) {
-	        log.error("Error in getConstitution()", e);
-	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-	                             .body("Something went wrong while fetching constitutions");
-	    }
+		} catch (Exception e) {
+			log.error("Error in getConstitution()", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Something went wrong while fetching constitutions");
+		}
 	}
 
-	
-
-	
 }
