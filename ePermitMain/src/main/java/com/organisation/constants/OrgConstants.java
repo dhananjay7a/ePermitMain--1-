@@ -236,6 +236,29 @@ public class OrgConstants {
 		public static final String RMC_UTTAR_DINAJPUR = "RMCUD";
 	}
 
+	public static interface DEPOSIT_PURPOSE {
+		public static final String REGISTRATION = "RG";
+		public static final String RENEWAL = "RW";
+		public static final String MARKET_FEES = "PG";// added for checking the record entry into reg-validity-tracker
+														// table through fund depodit screen
+		public static final String REGISTRATION_CASH = "RGC";
+		public static final String RENEWAL_CASH = "RWC";
+		public static final String PERMIT_GENERATION = "PG";
+		// created for reference 08-04-2019
+		public static final String MANUAL_BOARD_PAYOUT = "MB";
+		public static final String RMC_TO_RMC_HANDOVER = "RR";
+		public static final String DEPOSIT = "D";
+		public static final String WITHDRAWAL = "W";
+		public static final String BOARD_TO_RMC = "BR";
+		public static final String BOARD_TO_RMC_MISC = "BM";
+		public static final String private_market_application = "PA";
+	}
+
+	public static interface PDF_RESPONSE {
+		public static final String SUCCESS = "200";
+		public static final String ERROR = "201";
+	}
+
 	public static interface RMC_OFFICE_NAME {
 		public static final String RMC_ALIPURDUAR = "RMC ALIPURDUAR";
 		public static final String RMC_BANKURA = "RMC BANKURA";

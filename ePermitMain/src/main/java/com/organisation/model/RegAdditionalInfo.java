@@ -44,9 +44,9 @@ public class RegAdditionalInfo {
 	private String styleForPrivateMarketYard;
 	private String situationPrivateMarketYard;
 	private String natureOfInterestOnLand;
-	
+
 	private String resNo;
-	
+
 	private Timestamp requestStartDate;
 	private Timestamp requestEndDate;
 	private Doc1 doc1;
@@ -59,15 +59,15 @@ public class RegAdditionalInfo {
 	private Doc8 doc8;
 	private Doc9 doc9;
 	private Doc10 doc10;
-    
-	 
-    public Doc1 getDoc1() {
-        return doc1;
-    }
 
-    public void setDoc1(Doc1 doc1) {
-        this.doc1 = doc1;
-    }
+	public Doc1 getDoc1() {
+		return doc1;
+	}
+
+	public void setDoc1(Doc1 doc1) {
+		this.doc1 = doc1;
+	}
+
 	public Doc2 getDoc2() {
 		return doc2;
 	}
@@ -471,8 +471,9 @@ public class RegAdditionalInfo {
 	public String getResNo() {
 		return resNo;
 	}
+
 	public void setResNo(String resNo) {
 		this.resNo = resNo;
 	}
-	
+
 }

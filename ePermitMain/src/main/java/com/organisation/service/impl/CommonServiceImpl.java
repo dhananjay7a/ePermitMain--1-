@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.organisation.constants.OrgConstants;
 import com.organisation.dao.CommonDao;
 import com.organisation.dao.impl.IDGeneratorUtilDao;
 import com.organisation.model.ConfigMaster;
@@ -90,6 +91,34 @@ public class CommonServiceImpl implements CommonService {
 			user = null;
 		}
 		return configValue;
+	}
+
+	@Override
+	public String fetchConfiguration(String purpose, String category) {
+		log.info("Entering Service fetchConfiguration() of CommonServiceImpl");
+		String configvalue = "";
+		try {
+			if (purpose.equals(OrgConstants.DEPOSIT_PURPOSE.REGISTRATION)
+					|| purpose.equals(OrgConstants.DEPOSIT_PURPOSE.REGISTRATION_CASH)) {
+				configvalue = this.fetchConfiguration(OrgConstants.DEPOSIT_PURPOSE.REGISTRATION + "_" + category);
+
+				if (!OrgUtil.isNeitherNullNorEmpty(configvalue))
+					configvalue = this.fetchConfiguration(OrgConstants.DEPOSIT_PURPOSE.REGISTRATION);
+
+			} else if (purpose.equals(OrgConstants.DEPOSIT_PURPOSE.RENEWAL)
+					|| purpose.equals(OrgConstants.DEPOSIT_PURPOSE.RENEWAL_CASH)) {
+				configvalue = this.fetchConfiguration(OrgConstants.DEPOSIT_PURPOSE.RENEWAL + "_" + category);
+				if (!OrgUtil.isNeitherNullNorEmpty(configvalue))
+					configvalue = this.fetchConfiguration(OrgConstants.DEPOSIT_PURPOSE.RENEWAL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("Exception:" + e.getMessage());
+		} finally {
+
+		}
+		return configvalue;
 	}
 
 }

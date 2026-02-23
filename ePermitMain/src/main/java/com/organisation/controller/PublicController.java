@@ -1,5 +1,6 @@
 package com.organisation.controller;
 
+import java.text.Normalizer.Form;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,10 +23,15 @@ import com.epermit.register.dto.StateRequestDTO;
 import com.epermit.register.responsehandler.ApiResponses;
 import com.epermit.register.responsehandler.ResponseBean;
 import com.organisation.model.DistrictPinCodeMstr;
+import com.organisation.model.FormOne;
+import com.organisation.model.FormThree;
 import com.organisation.model.OrgConstitution;
+import com.organisation.model.RegistrationMaster;
+import com.organisation.model.RegistrationMstr;
 import com.organisation.model.StateDistrictMaster;
 import com.organisation.model.StateMaster;
 import com.organisation.repository.OrgConstitutionRepository;
+import com.organisation.repository.RegistrationMstrRepository;
 import com.organisation.repository.StateDistrictRepository;
 import com.organisation.repository.StateRepository;
 import com.organisation.service.PublicService;
@@ -41,6 +48,15 @@ public class PublicController {
 
 	@Autowired
 	private PublicService publicService;
+
+	@Autowired
+	private FormOne formService;
+
+	@Autowired
+	private FormThree formThreeService;
+
+	@Autowired
+	private RegistrationMstrRepository regRepo;
 
 	private static final Logger log = LoggerFactory.getLogger(PublicController.class);
 
@@ -125,4 +141,33 @@ public class PublicController {
 		}
 	}
 
+	@GetMapping("/generateForm1/{orgId}")
+	public ResponseEntity<?> generateForm1(@PathVariable String orgId) {
+		log.info("Inside generateForm1():: OrgController");
+		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
+		String filePath = null;
+		try {
+			filePath = formService.createPdf(regMstr);
+		} catch (Exception e) {
+			log.error("Error in generateForm1() :: OrgController", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Something went wrong while generating Form 1 PDF");
+		}
+		return ResponseEntity.ok("Form 1 PDF generated successfully at: " + filePath);
+	}
+
+	@GetMapping("/generateForm3/{orgId}")
+	public ResponseEntity<?> generateForm3(@PathVariable String orgId) {
+		log.info("Inside generateForm3():: PublicController");
+		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
+		String filePath = null;
+		try {
+			filePath = formThreeService.createPdf(regMstr);
+		} catch (Exception e) {
+			log.error("Error in generateForm3() :: PublicController", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Something went wrong while generating Form 3 PDF");
+		}
+		return ResponseEntity.ok("Form 3 PDF generated successfully at: " + filePath);
+	}
 }
