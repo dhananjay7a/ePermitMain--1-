@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.epermit.register.dto.DistrictPinCodeResponseDTO;
 import com.epermit.register.dto.DistrictResponseDTO;
+import com.epermit.register.dto.BlockCodeRequestDTO;
+import com.epermit.register.dto.BlockCodeResponseDTO;
 import com.epermit.register.dto.PinCodeRequestDTO;
 import com.epermit.register.dto.StateRequestDTO;
 import com.epermit.register.responsehandler.ApiResponses;
@@ -121,7 +123,6 @@ public class PublicController {
 		try {
 			List<DistrictPinCodeResponseDTO> pinCodes = publicService
 					.getPinCodesByStateCodeAndDistrictCode(request.getStateCode(), request.getDistrictCode());
-			System.out.println("Fetched Pin Codes: " + pinCodes);
 			if (pinCodes != null && !pinCodes.isEmpty()) {
 				responseBean.AllResponse("Success", pinCodes);
 			} else {
@@ -137,6 +138,30 @@ public class PublicController {
 			log.error("Error fetching pin codes for State Code: {}, District Code: {}. Exception: {}",
 					request.getStateCode(),
 					request.getDistrictCode(), e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBean.getResponse());
+		}
+	}
+
+	@PostMapping("/getBlockCodes")
+	public ResponseEntity<ApiResponses> getBlockCodes(@RequestBody BlockCodeRequestDTO request) {
+		log.info("Inside getBlockCodes():: publicController");
+		ResponseBean responseBean = new ResponseBean();
+		try {
+			List<BlockCodeResponseDTO> blockCodes = publicService
+					.getBlockCodesByPinCodeAndDistrictCode(request.getPinCode(), request.getDistrictCode());
+			if (blockCodes != null && !blockCodes.isEmpty()) {
+				responseBean.AllResponse("Success", blockCodes);
+			} else {
+				responseBean.AllResponse("NO_DATA_FOUND", null);
+				log.warn("No block codes found for Pin Code: {}, District Code: {}", request.getPinCode(),
+						request.getDistrictCode());
+			}
+			log.info("Exiting from getBlockCodes():: publicController");
+			return ResponseEntity.ok(responseBean.getResponse());
+		} catch (Exception e) {
+			responseBean.AllResponse("ERROR", null);
+			log.error("Error fetching block codes for Pin Code: {}, District Code: {}. Exception: {}",
+					request.getPinCode(), request.getDistrictCode(), e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBean.getResponse());
 		}
 	}

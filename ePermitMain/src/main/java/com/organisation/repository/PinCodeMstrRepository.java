@@ -40,4 +40,15 @@ public interface PinCodeMstrRepository
             """)
     List<DistrictPinCodeResponseDTO> findPinCodesByStateCodeAndDistrictCode(@Param("stateCode") String stateCode,
             @Param("districtCode") String districtCode);
+
+    @Query("""
+            SELECT DISTINCT upcm.blockName
+            FROM DistrictPinCodeMstr upcm
+            JOIN StateDistrictMaster usdm
+                ON upcm.districtName = usdm.districtName
+            WHERE usdm.id.districtCode = :districtCode
+              AND upcm.id.pinCode = :pinCode
+            """)
+    List<String> findBlockCodesByPinCodeAndDistrictCode(@Param("pinCode") String pinCode,
+            @Param("districtCode") String districtCode);
 }
