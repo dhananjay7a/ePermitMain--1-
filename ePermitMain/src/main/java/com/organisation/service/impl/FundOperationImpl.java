@@ -1,6 +1,5 @@
 package com.organisation.service.impl;
 
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +20,7 @@ import com.organisation.security.TokenService;
 import com.organisation.service.CashBookService;
 import com.organisation.service.DepositBookService;
 import com.organisation.service.FundsOperationService;
+import com.organisation.service.RegistrationService;
 
 import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
@@ -37,7 +37,7 @@ public class FundOperationImpl implements FundsOperationService {
     private CashBookService cashBookService;
 
     @Autowired
-    private RegistrationServiceImpl registrationService;
+    private RegistrationService registrationService;
 
     @Autowired
     private RegistrationMstrRepository registrationRepository;
@@ -101,14 +101,13 @@ public class FundOperationImpl implements FundsOperationService {
             regMstr.setRegBookType("CASH_BOOK");
             regMstr.setRegReceiptNo(receiptNo);
             regMstr.setIsRegistraionFeePaid(true);
-           
 
-        } else if("DEPOSIT".equalsIgnoreCase(deposit.getInstrumentType())) {
+        } else if ("DEPOSIT".equalsIgnoreCase(deposit.getInstrumentType())) {
             regMstr.setRegBookType("DEPOSIT_WITHDRAWAL_BOOK");
             regMstr.setRegReceiptNo(deposit.getTrnsNo());
             regMstr.setIsRegistraionFeePaid(true);
 
-        }else{
+        } else {
             return;
         }
 

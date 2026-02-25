@@ -23,6 +23,10 @@ import com.epermit.register.dto.StateRequestDTO;
 import com.epermit.register.responsehandler.ApiResponses;
 import com.epermit.register.responsehandler.ResponseBean;
 import com.organisation.model.DistrictPinCodeMstr;
+import com.organisation.model.Form3A;
+import com.organisation.model.Form3B;
+import com.organisation.model.Form4;
+import com.organisation.model.Form5;
 import com.organisation.model.FormOne;
 import com.organisation.model.FormThree;
 import com.organisation.model.FormTwo;
@@ -59,6 +63,18 @@ public class PublicController {
 
 	@Autowired
 	private FormTwo formTwoService;
+
+	@Autowired
+	private Form3A form3AService;
+
+	@Autowired
+	private Form3B form3BService;
+
+	@Autowired
+	private Form4 form4Service;
+
+	@Autowired
+	private Form5 form5Service;
 
 	@Autowired
 	private RegistrationMstrRepository regRepo;
@@ -189,6 +205,66 @@ public class PublicController {
 					.body("Something went wrong while generating Form 2 PDF");
 		}
 		return ResponseEntity.ok("Form 2 PDF generated successfully at: " + filePath);
+	}
+
+	@GetMapping("/generateForm3A/{orgId}")
+	public ResponseEntity<?> generateForm3A(@PathVariable String orgId) {
+		log.info("Inside generateForm3A():: PublicController");
+		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
+		String filePath = null;
+		try {
+			filePath = form3AService.createPdf(regMstr);
+		} catch (Exception e) {
+			log.error("Error in generateForm3A() :: PublicController", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Something went wrong while generating Form 3A PDF");
+		}
+		return ResponseEntity.ok("Form 3A PDF generated successfully at: " + filePath);
+	}
+
+	@GetMapping("/generateForm3B/{orgId}")
+	public ResponseEntity<?> generateForm3B(@PathVariable String orgId) {
+		log.info("Inside generateForm3B():: PublicController");
+		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
+		String filePath = null;
+		try {
+			filePath = form3BService.createPdf(regMstr);
+		} catch (Exception e) {
+			log.error("Error in generateForm3B() :: PublicController", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Something went wrong while generating Form 3B PDF");
+		}
+		return ResponseEntity.ok("Form 3B PDF generated successfully at: " + filePath);
+	}
+
+	@GetMapping("/generateForm4/{orgId}")
+	public ResponseEntity<?> generateForm4(@PathVariable String orgId) {
+		log.info("Inside generateForm4():: PublicController");
+		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
+		String filePath = null;
+		try {
+			filePath = form4Service.createPdf(regMstr);
+		} catch (Exception e) {
+			log.error("Error in generateForm4() :: PublicController", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Something went wrong while generating Form 4 PDF");
+		}
+		return ResponseEntity.ok("Form 4 PDF generated successfully at: " + filePath);
+	}
+
+	@GetMapping("/generateForm5/{orgId}")
+	public ResponseEntity<?> generateForm5(@PathVariable String orgId) {
+		log.info("Inside generateForm5():: PublicController");
+		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
+		String filePath = null;
+		try {
+			filePath = form5Service.createPdf(regMstr);
+		} catch (Exception e) {
+			log.error("Error in generateForm5() :: PublicController", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Something went wrong while generating Form 5 PDF");
+		}
+		return ResponseEntity.ok("Form 5 PDF generated successfully at: " + filePath);
 	}
 
 }
