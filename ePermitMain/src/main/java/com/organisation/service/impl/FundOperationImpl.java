@@ -13,14 +13,12 @@ import com.epermit.Exception.UnauthorizedException;
 import com.organisation.dto.DepositWithdrawalBookDTO;
 import com.organisation.model.CashBook;
 import com.organisation.model.DepositWithdrawalBook;
-import com.organisation.model.RegistrationMaster;
 import com.organisation.model.RegistrationMstr;
 import com.organisation.repository.RegistrationMstrRepository;
 import com.organisation.security.TokenService;
 import com.organisation.service.CashBookService;
 import com.organisation.service.DepositBookService;
 import com.organisation.service.FundsOperationService;
-import com.organisation.service.RegistrationService;
 
 import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
@@ -35,9 +33,6 @@ public class FundOperationImpl implements FundsOperationService {
     private DepositBookService depositBookService;
     @Autowired
     private CashBookService cashBookService;
-
-    @Autowired
-    private RegistrationService registrationService;
 
     @Autowired
     private RegistrationMstrRepository registrationRepository;
@@ -56,7 +51,6 @@ public class FundOperationImpl implements FundsOperationService {
         }
 
         String userId = ts.extractUserId(token);
-        String orgId = userId.startsWith("U") ? userId.substring(1) : userId;
 
         request.normalizePurpose();
 
@@ -182,7 +176,6 @@ public class FundOperationImpl implements FundsOperationService {
         }
 
         String userId = ts.extractUserId(token);
-        String orgId = userId.startsWith("U") ? userId.substring(1) : userId;
 
         // Call the repository method with all parameters
         List<DepositWithdrawalBookDTO> depositList = depositBookService.getDepositDetails(request, token);

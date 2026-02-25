@@ -29,6 +29,7 @@ import com.organisation.model.Form3A;
 import com.organisation.model.Form3B;
 import com.organisation.model.Form4;
 import com.organisation.model.Form5;
+import com.organisation.model.Form7;
 import com.organisation.model.FormOne;
 import com.organisation.model.FormThree;
 import com.organisation.model.FormTwo;
@@ -77,6 +78,9 @@ public class PublicController {
 
 	@Autowired
 	private Form5 form5Service;
+
+	@Autowired
+	private Form7 form7Service;
 
 	@Autowired
 	private RegistrationMstrRepository regRepo;
@@ -290,6 +294,21 @@ public class PublicController {
 					.body("Something went wrong while generating Form 5 PDF");
 		}
 		return ResponseEntity.ok("Form 5 PDF generated successfully at: " + filePath);
+	}
+
+	@GetMapping("/generateForm7/{orgId}")
+	public ResponseEntity<?> generateForm7(@PathVariable String orgId) {
+		log.info("Inside generateForm7():: PublicController");
+		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
+		String filePath = null;
+		try {
+			filePath = form7Service.createPdf(regMstr);
+		} catch (Exception e) {
+			log.error("Error in generateForm7() :: PublicController", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Something went wrong while generating Form 7 PDF");
+		}
+		return ResponseEntity.ok("Form 7 PDF generated successfully at: " + filePath);
 	}
 
 }
