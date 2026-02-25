@@ -25,6 +25,7 @@ import com.epermit.register.responsehandler.ResponseBean;
 import com.organisation.model.DistrictPinCodeMstr;
 import com.organisation.model.FormOne;
 import com.organisation.model.FormThree;
+import com.organisation.model.FormTwo;
 import com.organisation.model.OrgConstitution;
 import com.organisation.model.RegistrationMaster;
 import com.organisation.model.RegistrationMstr;
@@ -35,6 +36,7 @@ import com.organisation.repository.RegistrationMstrRepository;
 import com.organisation.repository.StateDistrictRepository;
 import com.organisation.repository.StateRepository;
 import com.organisation.service.PublicService;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/public")
@@ -54,6 +56,9 @@ public class PublicController {
 
 	@Autowired
 	private FormThree formThreeService;
+
+	@Autowired
+	private FormTwo formTwoService;
 
 	@Autowired
 	private RegistrationMstrRepository regRepo;
@@ -170,4 +175,20 @@ public class PublicController {
 		}
 		return ResponseEntity.ok("Form 3 PDF generated successfully at: " + filePath);
 	}
+
+	@GetMapping("/generateForm2/{orgId}")
+	public ResponseEntity<?> generateForm2(@PathVariable String orgId) {
+		log.info("Inside generateForm2():: PublicController");
+		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
+		String filePath = null;
+		try {
+			filePath = formTwoService.createPdf(regMstr);
+		} catch (Exception e) {
+			log.error("Error in generateForm2() :: PublicController", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Something went wrong while generating Form 2 PDF");
+		}
+		return ResponseEntity.ok("Form 2 PDF generated successfully at: " + filePath);
+	}
+
 }
