@@ -39,7 +39,7 @@ import com.register.model.RegisterAdditionalDetailsTemp;
 @Service("form5Service")
 public class Form5 {
 
-    @Value("${file.formFive.pdf.dir:${file.unsigned.pdf.dir:./unsigned-pdf/}}")
+    @Value("${file.formFive.pdf.dir:./formFive-pdf/}")
     private String pdfStoragePath;
 
     private static final Logger log = LoggerFactory.getLogger(Form5.class);
