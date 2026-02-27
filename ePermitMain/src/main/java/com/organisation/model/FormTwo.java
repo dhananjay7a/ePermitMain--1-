@@ -387,17 +387,20 @@ public class FormTwo {
             // ────────────────────────────────────────────────────────
             table.addCell(createCell(labelPara("(d)", 8), 1, 1, 0, false));
             {
+                String userMobile = (user != null && OrgUtil.isNeitherNullNorEmpty(user.getUserMobile()))
+                        ? user.getUserMobile().toUpperCase()
+                        : " ";
+                String userEmail = (user != null && OrgUtil.isNeitherNullNorEmpty(user.getUserEmail()))
+                        ? user.getUserEmail().toUpperCase()
+                        : " ";
+
                 String contact = (OrgUtil.isNeitherNullNorEmpty(/* regMstr.getDocType() */"AD")
                         ? documentType(/* regMstr.getDocType() */"AD")
                         : " ")
                         + "  "
-                        + (OrgUtil.isNeitherNullNorEmpty((user.getUserMobile()))
-                                ? user.getUserMobile().toUpperCase()
-                                : " ")
+                        + userMobile
                         + "  "
-                        + (OrgUtil.isNeitherNullNorEmpty(user.getUserEmail())
-                                ? user.getUserEmail().toUpperCase()
-                                : " ");
+                        + userEmail;
                 Paragraph p = contentPara()
                         .add(new Text("Contact No and e-Mail Id, if any, of any associated with -\n"))
                         .add(new Text(contact).setUnderline().setBold());
@@ -821,7 +824,11 @@ public class FormTwo {
     }
 
     private String getConstitution(String con) {
-        switch (con) {
+        if (!OrgUtil.isNeitherNullNorEmpty(con)) {
+            return "NA";
+        }
+
+        switch (con.trim().toUpperCase()) {
             case "GOV":
                 return "GOVERNMENT";
             case "PAR":

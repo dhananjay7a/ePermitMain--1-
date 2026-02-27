@@ -1,13 +1,20 @@
 package com.organisation.controller;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.Normalizer.Form;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -197,137 +204,95 @@ public class PublicController {
 
 	@GetMapping("/generateForm1/{orgId}")
 	public ResponseEntity<?> generateForm1(@PathVariable String orgId) {
-		log.info("Inside generateForm1():: OrgController");
-		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
-		String filePath = null;
-		try {
-			filePath = formService.createPdf(regMstr);
-		} catch (Exception e) {
-			log.error("Error in generateForm1() :: OrgController", e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Something went wrong while generating Form 1 PDF");
-		}
-		return ResponseEntity.ok("Form 1 PDF generated successfully at: " + filePath);
+		log.info("Inside generateForm1():: PublicController");
+		return generateAndDownloadPdf(orgId, "Form 1", formService::createPdf);
 	}
 
 	@GetMapping("/generateForm3/{orgId}")
 	public ResponseEntity<?> generateForm3(@PathVariable String orgId) {
 		log.info("Inside generateForm3():: PublicController");
-		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
-		String filePath = null;
-		try {
-			filePath = formThreeService.createPdf(regMstr);
-		} catch (Exception e) {
-			log.error("Error in generateForm3() :: PublicController", e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Something went wrong while generating Form 3 PDF");
-		}
-		return ResponseEntity.ok("Form 3 PDF generated successfully at: " + filePath);
+		return generateAndDownloadPdf(orgId, "Form 3", formThreeService::createPdf);
 	}
 
 	@GetMapping("/generateForm2/{orgId}")
 	public ResponseEntity<?> generateForm2(@PathVariable String orgId) {
 		log.info("Inside generateForm2():: PublicController");
-		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
-		String filePath = null;
-		try {
-			filePath = formTwoService.createPdf(regMstr);
-		} catch (Exception e) {
-			log.error("Error in generateForm2() :: PublicController", e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Something went wrong while generating Form 2 PDF");
-		}
-		return ResponseEntity.ok("Form 2 PDF generated successfully at: " + filePath);
+		return generateAndDownloadPdf(orgId, "Form 2", formTwoService::createPdf);
 	}
 
 	@GetMapping("/generateForm3A/{orgId}")
 	public ResponseEntity<?> generateForm3A(@PathVariable String orgId) {
 		log.info("Inside generateForm3A():: PublicController");
-		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
-		String filePath = null;
-		try {
-			filePath = form3AService.createPdf(regMstr);
-		} catch (Exception e) {
-			log.error("Error in generateForm3A() :: PublicController", e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Something went wrong while generating Form 3A PDF");
-		}
-		return ResponseEntity.ok("Form 3A PDF generated successfully at: " + filePath);
+		return generateAndDownloadPdf(orgId, "Form 3A", form3AService::createPdf);
 	}
 
 	@GetMapping("/generateForm3B/{orgId}")
 	public ResponseEntity<?> generateForm3B(@PathVariable String orgId) {
 		log.info("Inside generateForm3B():: PublicController");
-		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
-		String filePath = null;
-		try {
-			filePath = form3BService.createPdf(regMstr);
-		} catch (Exception e) {
-			log.error("Error in generateForm3B() :: PublicController", e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Something went wrong while generating Form 3B PDF");
-		}
-		return ResponseEntity.ok("Form 3B PDF generated successfully at: " + filePath);
+		return generateAndDownloadPdf(orgId, "Form 3B", form3BService::createPdf);
 	}
 
 	@GetMapping("/generateForm4/{orgId}")
 	public ResponseEntity<?> generateForm4(@PathVariable String orgId) {
 		log.info("Inside generateForm4():: PublicController");
-		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
-		String filePath = null;
-		try {
-			filePath = form4Service.createPdf(regMstr);
-		} catch (Exception e) {
-			log.error("Error in generateForm4() :: PublicController", e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Something went wrong while generating Form 4 PDF");
-		}
-		return ResponseEntity.ok("Form 4 PDF generated successfully at: " + filePath);
+		return generateAndDownloadPdf(orgId, "Form 4", form4Service::createPdf);
 	}
 
 	@GetMapping("/generateForm5/{orgId}")
 	public ResponseEntity<?> generateForm5(@PathVariable String orgId) {
 		log.info("Inside generateForm5():: PublicController");
-		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
-		String filePath = null;
-		try {
-			filePath = form5Service.createPdf(regMstr);
-		} catch (Exception e) {
-			log.error("Error in generateForm5() :: PublicController", e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Something went wrong while generating Form 5 PDF");
-		}
-		return ResponseEntity.ok("Form 5 PDF generated successfully at: " + filePath);
+		return generateAndDownloadPdf(orgId, "Form 5", form5Service::createPdf);
 	}
 
 	@GetMapping("/generateForm7/{orgId}")
 	public ResponseEntity<?> generateForm7(@PathVariable String orgId) {
 		log.info("Inside generateForm7():: PublicController");
-		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
-		String filePath = null;
-		try {
-			filePath = form7Service.createPdf(regMstr);
-		} catch (Exception e) {
-			log.error("Error in generateForm7() :: PublicController", e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Something went wrong while generating Form 7 PDF");
-		}
-		return ResponseEntity.ok("Form 7 PDF generated successfully at: " + filePath);
+		return generateAndDownloadPdf(orgId, "Form 7", form7Service::createPdf);
 	}
 
 	@GetMapping("/generateForm8/{orgId}")
 	public ResponseEntity<?> generateForm8(@PathVariable String orgId) {
 		log.info("Inside generateForm8():: PublicController");
+		return generateAndDownloadPdf(orgId, "Form 8", form8Service::createPdf);
+	}
+
+	private ResponseEntity<?> generateAndDownloadPdf(String orgId, String formName,
+			Function<RegistrationMstr, String> pdfGenerator) {
 		RegistrationMstr regMstr = regRepo.findByOrgId(orgId).orElse(null);
-		String filePath = null;
-		try {
-			filePath = form8Service.createPdf(regMstr);
-		} catch (Exception e) {
-			log.error("Error in generateForm8() :: PublicController", e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Something went wrong while generating Form 8 PDF");
+		if (regMstr == null) {
+			log.warn("No registration found for orgId: {}", orgId);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body("Registration not found for orgId: " + orgId);
 		}
-		return ResponseEntity.ok("Form 8 PDF generated successfully at: " + filePath);
+
+		try {
+			String filePath = pdfGenerator.apply(regMstr);
+			if (filePath == null || filePath.isBlank()) {
+				log.error("PDF generation returned empty path for {} and orgId {}", formName, orgId);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+						.body("Something went wrong while generating " + formName + " PDF");
+			}
+
+			Path pdfPath = Paths.get(filePath);
+			if (!Files.exists(pdfPath)) {
+				log.error("Generated PDF not found at path: {}", filePath);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+						.body("Generated PDF file not found for " + formName);
+			}
+
+			byte[] pdfBytes = Files.readAllBytes(pdfPath);
+			String downloadFileName = pdfPath.getFileName().toString();
+
+			return ResponseEntity.ok()
+					.contentType(MediaType.APPLICATION_PDF)
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + downloadFileName + "\"")
+					.contentLength(pdfBytes.length)
+					.body(new ByteArrayResource(pdfBytes));
+		} catch (Exception e) {
+			log.error("Error while generating/downloading {} for orgId {}", formName, orgId, e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Something went wrong while generating " + formName + " PDF");
+		}
 	}
 
 }
