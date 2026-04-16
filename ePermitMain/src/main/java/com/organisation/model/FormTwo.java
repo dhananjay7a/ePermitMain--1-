@@ -45,11 +45,9 @@ public class FormTwo {
 
     private static final Logger log = LoggerFactory.getLogger(FormTwo.class);
 
-    // FIX: instance fields instead of static — avoids concurrency issues
     private PdfFont font = null;
     private PdfFont fontBold = null;
 
-    // FIX: consistent font size constants — 14pt was too large for a dense form
     private static final float BODY_FONT_SIZE = 11f;
     private static final float HEADING_FONT_SIZE = 13f;
 
@@ -59,14 +57,10 @@ public class FormTwo {
     @Autowired
     UserMstrRepository uMstrRepository;
 
-    /**
-     * FIX: createCell now has proper padding so rows don't crush each other.
-     * Old version used setPadding(0) everywhere — now 4pt on all sides.
-     */
     public Cell createCell(Paragraph paragraph, int colspan, int rowspan, int border, boolean isBorder) {
         Cell cell = new Cell(rowspan, colspan).add(paragraph)
                 .setFontSize(BODY_FONT_SIZE)
-                .setPaddingTop(4) // FIX: was 0/2 — gives vertical breathing room
+                .setPaddingTop(4) // was 0/2 — gives vertical breathing room
                 .setPaddingBottom(4)
                 .setPaddingLeft(4)
                 .setPaddingRight(4);

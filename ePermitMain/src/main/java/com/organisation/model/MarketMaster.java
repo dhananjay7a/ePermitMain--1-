@@ -3,16 +3,18 @@ package com.organisation.model;
 import java.math.BigDecimal;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-
-
+@Entity
 @Table(name = "UN_MARKET_MSTR")
 public class MarketMaster extends Pagination {
 
 	@Column(name = "CREATED_ON")
 	private java.sql.Timestamp createdOn;
 
+	@Id
 	@Column(name = "MARKET_CODE")
 	private String marketCode;
 
@@ -27,7 +29,7 @@ public class MarketMaster extends Pagination {
 
 	private String districtName;
 
-//-------------------BANK DETAILS------------------------------	
+	// -------------------BANK DETAILS------------------------------
 	@Column(name = "BANK_NAME")
 	private String bankName;
 
@@ -49,7 +51,8 @@ public class MarketMaster extends Pagination {
 	@Column(name = "CREATED_BY")
 	private String createdBy;
 
-//-------------------------AUTHORIZED PERSON DETAILS------------------------------------
+	// -------------------------AUTHORIZED PERSON
+	// DETAILS------------------------------------
 	@Column(name = "AUTHORIZED_PERSON")
 	private String authorizedPerson;
 
@@ -90,7 +93,7 @@ public class MarketMaster extends Pagination {
 	private String modified_by;
 	private String groupCode;
 	private String dropdownValue;
-	//kanchang added
+	// kanchang added
 	private String checkPostId;
 	private String checkPostName;
 
@@ -100,9 +103,9 @@ public class MarketMaster extends Pagination {
 	private String isProcurementCenter;
 	@Column(name = "agency_code")
 	private String agencyCode;
-	
-	private String permitCnclStatus; //PraveenL
-	
+
+	private String permitCnclStatus; // PraveenL
+
 	public String getIsDenotifiedMarket() {
 		return isDenotifiedMarket;
 	}
@@ -406,9 +409,14 @@ public class MarketMaster extends Pagination {
 	public void setBranchName(String branchName) {
 		this.branchName = branchName;
 	}
-	
-	 public String getDistrictName() { return districtName; } 
-	 public void setDistrictName(String districtName) { this.districtName = districtName; }
+
+	public String getDistrictName() {
+		return districtName;
+	}
+
+	public void setDistrictName(String districtName) {
+		this.districtName = districtName;
+	}
 
 	public String getDestinationType() {
 		return destinationType;
@@ -453,7 +461,7 @@ public class MarketMaster extends Pagination {
 	public String getPermitCnclStatus() {
 		return permitCnclStatus;
 	}
-	
+
 	public void setPermitCnclStatus(String permitCnclStatus) {
 		this.permitCnclStatus = permitCnclStatus;
 	}
@@ -465,7 +473,5 @@ public class MarketMaster extends Pagination {
 	public void setDropdownValue(String dropdownValue) {
 		this.dropdownValue = dropdownValue;
 	}
-
-	
 
 }

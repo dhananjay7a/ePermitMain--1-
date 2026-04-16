@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.organisation.model.RegistrationMstr;
 
 @Repository
-public interface RegistrationMstrRepository extends JpaRepository<RegistrationMstr, String>{
+public interface RegistrationMstrRepository extends JpaRepository<RegistrationMstr, String> {
 	Optional<RegistrationMstr> findByOrgId(String orgId);
+
 }
