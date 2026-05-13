@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.epermit.register.dto.LogOutDto;
 import com.epermit.register.dto.LoginDto;
-import com.epermit.register.responsehandler.ApiResponses;
-import com.epermit.register.responsehandler.ResponseBean;
+import com.organisation.responsehandler.ApiResponses;
+import com.organisation.responsehandler.ResponseBean;
 import com.organisation.service.LoginService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,75 +21,70 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/new")
 public class LoginController {
-	
+
 	@Autowired
 	private LoginService ls;
-	
+
 	private static final Logger log = LoggerFactory.getLogger(LoginController.class);
+
 	@PostMapping("/login")
-	public ApiResponses login(@RequestBody LoginDto model, HttpServletRequest request ) throws Exception {
-		ResponseBean responseBean=new ResponseBean();
+	public ApiResponses login(@RequestBody LoginDto model, HttpServletRequest request) throws Exception {
+		ResponseBean responseBean = new ResponseBean();
 		try {
-			String ip=request.getHeader("X-Forwarded-For");
+			String ip = request.getHeader("X-Forwarded-For");
 			if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-			            ip = ((HttpServletRequest) request).getHeader("X-Real-IP");
-			        }       
-			        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-			            ip = request.getRemoteAddr();
-			        }
-			        if (ip != null && ip.contains(",")) {
-			            ip = ip.split(",")[0].trim();
-			        }			
+				ip = ((HttpServletRequest) request).getHeader("X-Real-IP");
+			}
+			if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+				ip = request.getRemoteAddr();
+			}
+			if (ip != null && ip.contains(",")) {
+				ip = ip.split(",")[0].trim();
+			}
 
 			ls.login(responseBean, model, ip);
-		}
-		catch(Exception ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			log.error("Something went wrong");
-			
-		}		
+
+		}
 		return responseBean.getResponse();
 	}
-	
-	
-	//logout
-	
+
+	// logout
+
 	@PostMapping("/logout")
 	public ApiResponses logout(@RequestBody LogOutDto model, HttpServletRequest request,
 			@RequestHeader(value = "Authorization", required = false) String authHeader) {
 
 		ResponseBean responseBean = new ResponseBean();
 
-	    try {
-	        String token = "";
+		try {
+			String token = "";
 
-	        // Extract token
-	        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-	            token = authHeader.substring(7);
-	        }
+			// Extract token
+			if (authHeader != null && authHeader.startsWith("Bearer ")) {
+				token = authHeader.substring(7);
+			}
 
-	        // Fetch IP address
-	        String ip = request.getHeader("X-Forwarded-For");
-	        if (ip == null || ip.isEmpty() || ip.equalsIgnoreCase("unknown")) {
-	            ip = request.getHeader("X-Real-IP");
-	        }
-	        if (ip == null || ip.isEmpty()) {
-	            ip = request.getRemoteAddr();
-	        }
+			// Fetch IP address
+			String ip = request.getHeader("X-Forwarded-For");
+			if (ip == null || ip.isEmpty() || ip.equalsIgnoreCase("unknown")) {
+				ip = request.getHeader("X-Real-IP");
+			}
+			if (ip == null || ip.isEmpty()) {
+				ip = request.getRemoteAddr();
+			}
 
-	        // Call service
-	        ls.logoutUser(model, responseBean, token, ip);
+			// Call service
+			ls.logoutUser(model, responseBean, token, ip);
 
-	    } catch (Exception ex) {
-	        
-	        responseBean.AllResponse("Error", null);
-	    }
+		} catch (Exception ex) {
 
-	    return responseBean.getResponse();
+			responseBean.AllResponse("Error", null);
+		}
+
+		return responseBean.getResponse();
 	}
 
-	
-	
 }
-	
-	

@@ -33,6 +33,7 @@ public class OrgConstants {
 	public static final String responseCode = "RCODE";
 
 	public static final String DEFAULT_SMS_STATUS = "P";
+	public static final String IS_PENDING = "P";
 
 	public static interface MESSAGE_TYPE {
 		public static final String SMS = "S";
