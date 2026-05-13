@@ -1,7 +1,10 @@
 package com.organisation.repository;
 
+
+
 import com.organisation.dto.UserMappingDto;
 import com.organisation.model.UserMarketMapping;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,7 +19,7 @@ public interface UserMarketMapRepository extends JpaRepository<UserMarketMapping
                         "um.userId, ms.marketCode, ms.description, um.isActive, " +
                         "um.createdBy, um.createdOn, um.modifiedBy, um.modifiedOn) " +
                         "FROM UserMarketMapping um " +
-                        "INNER JOIN MarketMaster ms ON ms.marketCode = um.marketCode " +
+                        "INNER JOIN MarketMstr ms ON ms.marketCode = um.marketCode " +
                         "WHERE ms.isMockMarket = 'N' " +
                         "AND um.userId = :userId " +
                         "AND um.isActive = :isActive")

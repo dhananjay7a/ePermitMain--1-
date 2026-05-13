@@ -17,10 +17,9 @@ import com.epermit.register.dto.RegistrationPreviewDTO;
 import com.epermit.register.dto.ScrutinyRequestDTO;
 import com.epermit.register.dto.TermsAndConditionsResponseDTO;
 import com.epermit.register.dto.UserDigiSignRequestDto;
-import com.epermit.register.responsehandler.ApiResponses;
-import com.epermit.register.responsehandler.ResponseBean;
 import com.organisation.dto.ChangeDefaultPasswordDTO;
 import com.organisation.dto.OtpValidateDTO;
+import com.organisation.dto.ScrutinyListRequestDto;
 import com.organisation.model.DropDownMaster;
 import com.organisation.model.MarketMstr;
 import com.organisation.model.MessageTracker;
@@ -29,6 +28,8 @@ import com.organisation.model.RegistrationMaster;
 import com.organisation.model.RegistrationMstr;
 import com.organisation.model.ResponseMessage;
 import com.organisation.model.UserMstr;
+import com.organisation.responsehandler.ApiResponses;
+import com.organisation.responsehandler.ResponseBean;
 import com.register.model.BankGstDetails;
 import com.register.model.DocumentUploadTemp;
 import com.register.model.LicenseeDetailsTemp;
@@ -90,5 +91,11 @@ public interface RegistrationService {
     UserMstr changePasswordOTP(ChangeDefaultPasswordDTO request);
 
     boolean validateOTP(OtpValidateDTO request);
+    
+    void getScrutinyList(String token, ScrutinyListRequestDto requestDto);
+    
+    void getFinalApproverList(String token, ScrutinyListRequestDto requestDto);
+    void changeDefaultPassword(ChangeDefaultPasswordDTO request, ResponseBean responseBean);
+    String editRegistrationForRenewal(FinalRegistrationFormDTO formDTO);
 
 }

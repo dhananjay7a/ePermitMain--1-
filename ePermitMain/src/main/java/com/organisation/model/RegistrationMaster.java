@@ -219,7 +219,7 @@ public class RegistrationMaster implements Serializable {
 	private String scopeUsr;
 
 	private String orgCategoryScope;
-	private String marketYearApp;
+	private String marketYearApp;  
 	private String marketYr;
 	private String impExp;
 
@@ -684,7 +684,7 @@ public class RegistrationMaster implements Serializable {
 	private String isProfileUpdated;
 	private String profileUpdateStatus;
 
-	// /**************Registration Details************/
+//	/**************Registration Details************/
 	// *************Renewal Registraion Document related Variable******************/
 	private Timestamp createDateDocFilter;
 	private boolean docVisibilityCheck;

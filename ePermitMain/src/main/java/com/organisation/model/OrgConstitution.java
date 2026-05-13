@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name="un_dropdown_mstr")
+@Table(name="tbl_dropdown_mstr")
 public class OrgConstitution {
 
     @Id

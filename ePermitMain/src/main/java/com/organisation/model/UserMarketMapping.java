@@ -1,10 +1,12 @@
 package com.organisation.model;
 
+
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "un_user_market_mapping")
+@Table(name = "tbl_user_market_mapping")
 public class UserMarketMapping {
     @Id
     @Column(name = "user_id")

@@ -27,7 +27,7 @@ public interface FormDocumentRepository extends JpaRepository<FormDocument, Long
      */
     List<FormDocument> findByFormType(String formType);
 
-        Optional<FormDocument> findFirstByOrgIdAndFormTypeAndFormStatusOrderByFormDocIdDesc(String orgId,
+    Optional<FormDocument> findFirstByOrgIdAndFormTypeAndFormStatusOrderByFormDocIdDesc(String orgId,
             String formType, String formStatus);
 
 }

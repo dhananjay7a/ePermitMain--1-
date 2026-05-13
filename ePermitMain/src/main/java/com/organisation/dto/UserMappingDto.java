@@ -1,7 +1,11 @@
 package com.organisation.dto;
 
+
+
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserMappingDto {
 
     private String userId;

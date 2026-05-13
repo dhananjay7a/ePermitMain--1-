@@ -9,5 +9,5 @@ import com.register.model.RegisterAdditionalDetailsTemp;
 @Repository
 public interface RegisterAdditionalDetailsTempRepository extends JpaRepository<RegisterAdditionalDetailsTemp, String> {
 	RegisterAdditionalDetailsTemp findByOrgId(String orgId);
-
+	 boolean existsByOrgIdAndMarketYearApp(String orgId, String marketYearApp);
 }

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.sql.Connection;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -41,12 +42,13 @@ import com.epermit.register.dto.ScrutinyRequestDTO;
 import com.epermit.register.dto.TermsAndConditionsDTO;
 import com.epermit.register.dto.TermsAndConditionsResponseDTO;
 import com.epermit.register.dto.UserDigiSignRequestDto;
-import com.epermit.register.responsehandler.ResponseBean;
 import com.organisation.constants.OrgConstants;
 import com.organisation.constants.OrgConstants.REGISTRATION_STATUS;
 import com.organisation.dao.RegistrationDao;
 import com.organisation.dto.ChangeDefaultPasswordDTO;
 import com.organisation.dto.OtpValidateDTO;
+import com.organisation.dto.ScrutinyListRequestDto;
+import com.organisation.dto.ScrutinyListResponseDto;
 import com.organisation.model.AccountMstr;
 import com.organisation.model.BankGstMstr;
 import com.organisation.model.DropDownMaster;
@@ -73,30 +75,38 @@ import com.organisation.repository.MarketMstrRepository;
 import com.organisation.repository.MessageTrackerRepository;
 import com.organisation.repository.OfficeDetailsRepository;
 import com.organisation.repository.OrgCategoryRepository;
+import com.organisation.repository.RegisterAdditionalDetailsArchiveRepository;
 import com.organisation.repository.RegisterAdditionalDetailsRepository;
 import com.organisation.repository.RegisterAdditionalDetailsTempRepository;
 import com.organisation.repository.RegisterBasicInfoRepository;
 import com.organisation.repository.RegisterBusinessAddressFinalRepository;
 import com.organisation.repository.RegisterBusinessAddressRepository;
+import com.organisation.repository.RegistrationMstrArchiveRepository;
 import com.organisation.repository.RegistrationMstrRepository;
 import com.organisation.repository.RegistrationStatusRepository;
+import com.organisation.repository.RenewalHistoryRepository;
 import com.organisation.repository.TermsAndConditionsRepository;
 import com.organisation.repository.UserDigiSignRepository;
 import com.organisation.repository.UserMstrRepository;
+import com.organisation.responsehandler.ResponseBean;
 import com.organisation.security.TokenService;
 import com.organisation.service.PasswordService;
 import com.organisation.service.RegistrationService;
-
+import com.organisation.util.FinancialYearUtil;
 import com.organisation.util.OrgUtil;
 import com.register.model.BankGstDetails;
 import com.register.model.DocumentUploadTemp;
+import com.register.model.FinancialYear;
 import com.register.model.LicenseeDetailsTemp;
+import com.register.model.RegisterAdditionalDetailsArchive;
 import com.register.model.RegisterAdditionalDetailsTemp;
 import com.register.model.RegisterBasicInfo;
 import com.register.model.RegisterBasicInfoAddress;
 import com.register.model.RegisterBusinessAddress;
 import com.register.model.RegisterBusinessAddressId;
+import com.register.model.RegistrationMstrArchive;
 import com.register.model.RegistrationStatus;
+import com.register.model.RenewalHistory;
 
 import io.jsonwebtoken.Claims;
 
@@ -179,6 +189,21 @@ public class RegistrationServiceImpl implements RegistrationService {
 
 	@Autowired
 	private UserDigiSignRepository dsignRepo;
+	@Autowired
+	private ResponseBean responseBean;
+	
+	@Autowired
+	private OfficeDetailsRepository officeDetailsRepo;
+	
+	@Autowired
+	private RegistrationMstrArchiveRepository regMstrArchiveRepo;
+
+	@Autowired
+	private RenewalHistoryRepository renewalHistoryRepo;
+	
+	@Autowired
+	private RegisterAdditionalDetailsArchiveRepository additionalDetailsArchiveRepo;
+	
 
 	private static final Logger log = LoggerFactory.getLogger(RegistrationServiceImpl.class);
 
@@ -1919,5 +1944,526 @@ public class RegistrationServiceImpl implements RegistrationService {
 			return Optional.empty();
 		}
 	}
+
+	@Override
+	public void getScrutinyList(String token, ScrutinyListRequestDto requestDto) {
+		
+	//	ResponseBean responseBean = new ResponseBean();
+		
+
+	        try {
+
+	            // 🔐 TOKEN CHECK
+	            if (token == null || token.isBlank()) {
+	                responseBean.AllResponse("TokenMissing", null);
+	                return;
+	            }
+
+	            if (token.startsWith("Bearer ")) {
+	                token = token.substring(7);
+	            }
+
+	            Claims claims = ts.validateToken(token);
+	            if (claims == null) {
+	                responseBean.AllResponse("TokenInvalid", null);
+	                return;
+	            }
+
+	            // 🆔 Extract userId
+	            String userId = ts.extractUserId(token);   // UEPUMDL00007
+	            String orgId = userId.startsWith("U") ? userId.substring(1) : userId;
+
+	            // 📊 Fetch Data
+	            List<Object[]> list = regMstrRepo.getScrutinyList();
+
+	            if (list == null || list.isEmpty()) {
+	                responseBean.AllResponse("NoDataFound", null);
+	                return;
+	            }
+
+	            List<ScrutinyListResponseDto> dtoList = new ArrayList<>();
+
+	            for (Object[] obj : list) {
+
+	            	ScrutinyListResponseDto dto = new ScrutinyListResponseDto();
+
+	                dto.setOrgId((String) obj[0]);
+	                dto.setOrgName((String) obj[1]);
+	                dto.setOrgCategory((String) obj[2]);
+	                dto.setApplicationStatus((String) obj[3]);
+	                dto.setRemarks((String) obj[4]);
+	               
+
+	                dtoList.add(dto);
+	              //  System.out.println(dto.toString());
+	            }
+
+	            responseBean.AllResponse("Success", dtoList);
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            responseBean.AllResponse("Error", e.getMessage());
+	        }
+		
+	}
+
+	@Override
+	public void getFinalApproverList(String token, ScrutinyListRequestDto requestDto) {
+		 try {
+
+	            // 🔐 TOKEN CHECK
+	            if (token == null || token.isBlank()) {
+	                responseBean.AllResponse("TokenMissing", null);
+	                return;
+	            }
+
+	            if (token.startsWith("Bearer ")) {
+	                token = token.substring(7);
+	            }
+
+	            Claims claims = ts.validateToken(token);
+	            if (claims == null) {
+	                responseBean.AllResponse("TokenInvalid", null);
+	                return;
+	            }
+
+	            // 🆔 Extract userId
+	            String userId = ts.extractUserId(token);   // UEPUMDL00007
+	            String orgId = userId.startsWith("U") ? userId.substring(1) : userId;
+
+	            // 📊 Fetch Data
+	            List<Object[]> list = regMstrRepo.getFinalApproverList();
+
+	            if (list == null || list.isEmpty()) {
+	                responseBean.AllResponse("NoDataFound", null);
+	                return;
+	            }
+
+	            List<ScrutinyListResponseDto> dtoList = new ArrayList<>();
+
+	            for (Object[] obj : list) {
+
+	            	ScrutinyListResponseDto dto = new ScrutinyListResponseDto();
+
+	                dto.setOrgId((String) obj[0]);
+	                dto.setOrgName((String) obj[1]);
+	                dto.setOrgCategory((String) obj[2]);
+	                dto.setApplicationStatus((String) obj[3]);
+	                dto.setRemarks((String) obj[4]);
+	               
+
+	                dtoList.add(dto);
+	               // System.out.println(dto.toString());
+	            }
+
+	            responseBean.AllResponse("Success", dtoList);
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            responseBean.AllResponse("Error", e.getMessage());
+	        }
+		
+	}
+
+	@Override
+	public void changeDefaultPassword(ChangeDefaultPasswordDTO request,
+	                                  ResponseBean responseBean) {
+
+	    try {
+
+	        UserMstr user = userMstrRepo.findByUserId(request.getUserId());
+
+	        if (user == null) {
+	            responseBean.AllResponse("UserNotFound", null);
+	            return;
+	        }
+
+	        // check old password
+	        if (!user.getUserPassword()
+	                .equals(PasswordService.encrypt(request.getOldPassword()))) {
+
+	            responseBean.AllResponse("OldPasswordIncorrect", null);
+	            return;
+	        }
+
+	        // confirm password match
+	        if (!request.getNewPassword()
+	                .equals(request.getConfirmNewPassword())) {
+
+	            responseBean.AllResponse("PWDINVAL", null);
+	            return;
+	        }
+
+	        // update password
+	        user.setUserPassword(
+	                PasswordService.encrypt(request.getNewPassword())
+	        );
+
+	        userMstrRepo.save(user);
+
+	        responseBean.AllResponse("PasswordChangedSuccessfully", null);
+
+	    } catch (Exception e) {
+	        log.error("changeDefaultPassword error", e);
+	        responseBean.AllResponse("Error", null);
+	    }
+	}
+	
+	@Override
+	public String editRegistrationForRenewal(FinalRegistrationFormDTO formDTO) {
+		log.info("Inside editRegistrationForRenewal() RegServiceImpl " + formDTO.getBasicInfo().getOrgId());
+		String response = null;
+		BasicInfoDTO basic = formDTO.getBasicInfo();
+		String orgId = basic.getOrgId();
+		RegistrationMstr regMstr = null;
+		try {
+			regMstr = regMstrRepo.findByOrgId(orgId).
+					orElseThrow(() -> new RuntimeException("Registration not found for OrgId: " + orgId));
+			response = this.renewalValidation(regMstr);
+			if(! response.equals("NO_ERROR")) {
+				return response;
+			}
+			
+			RegistrationStatus regStatus = regStatusRepo.findTopByOrgIdOrderByActionDateTimeDesc(regMstr.getOrgId())
+					.orElse(null);
+			if(regStatus.getApplicationStatus().equals(OrgConstants.REGISTRATION_STATUS.DSIGN_PENDING)) {
+				response = "REQUEST_PENDING_FOR_APPROVAL";
+			}
+			response =  this.editRegistrationForRenewal(regMstr);
+			
+		} catch (Exception e) {
+			response = "RENEWAL_FAILED";
+			log.error("RENEWAL_FAILED | Exception : " + e.getMessage() + " " + e.getStackTrace());
+		}
+		log.info("Exiting editRegistrationForRenewal() RegServiceImpl");
+		return response;
+	}
+	
+	
+	public String editRegistrationForRenewal(RegistrationMstr regMstr) {
+		log.info("Inside editRegistrationForRenewal() RegServiceImpl " + regMstr.getOrgId() + " " + regMstr.getOrgName());
+		String response = null;
+		try {
+			RegistrationMstr regMstrFromDB = regMstrRepo.findByOrgId(regMstr.getOrgId()).
+					orElseThrow(() -> new RuntimeException("Registration not found for OrgId: " + regMstr.getOrgId()));
+			RegisterAdditionalDetails regAddtnInfoFromDB = additionalDetailsRepo.findByOrgId(regMstr.getOrgId())
+					.orElse(null);
+			
+			if (!OrgUtil.isNeitherNullNorEmpty(regMstrFromDB) || !OrgUtil.isNeitherNullNorEmpty(regMstrFromDB.getOrgId())) {
+				response = "ORG_NOT_FOUND";
+				return response;
+			}
+			
+			LocalDate userValidity = regMstr.getRegFeeValidity().toLocalDateTime().toLocalDate();
+            LocalDate currentFYEnd = FinancialYearUtil.getCurrentFinancialYear().getEndDate();
+		   
+            //initial check for current year
+		    if (OrgUtil.isNeitherNullNorEmpty(regAddtnInfoFromDB.getMarketYearApp()) && 
+		    		regAddtnInfoFromDB.getMarketYearApp().equals(regMstr.getFinancialYear())) {
+	            if (userValidity.isEqual(currentFYEnd)) {
+	               return "Renewal For Selected Market Year is Already Done";
+	            }
+	        }
+		    
+		    OrgOfficeDetails officeDetails = officeDetailsRepo.findByOrgOfficeCode(regMstr.getOrgOfficeCode())
+					.orElse(null);
+		    boolean isMember = orgCategoryRepo
+		            .findByOrgCategory(officeDetails.getOrgCategory())
+		            .map(OrgCategoryMaster::isMember)
+		            .orElse(false);
+		    
+		    if (!isMember) {
+		        log.info("Not eligible for Renewal", regMstrFromDB.getOrgCategory());
+		        return "ORG_NOT_ELIGIBLE_FOR_RENEWAL";
+		    }
+		    regMstrFromDB.setOrgRenewalStatus(OrgConstants.IS_PENDING);
+		    if(OrgUtil.isNeitherNullNorEmpty(regMstr.getRequestStartDate()) && OrgUtil.isNeitherNullNorEmpty(regMstr.getRequestEndDate())) {
+				regMstrFromDB.setRequestStartDate(regMstr.getRequestStartDate());
+				regMstrFromDB.setRequestEndDate(regMstr.getRequestEndDate());
+			}
+		    
+		    regMstrFromDB.setIsRenewed(OrgConstants.YES);
+			
+		    response = this.editRegistration(regMstrFromDB);
+		    
+
+		} catch (Exception e) {
+			response = "RENEWAL_FAILED";
+			log.error("RENEWAL_FAILED | Exception : " + e.getMessage() + " ::: Error at Line Number ::"
+					+ e.getStackTrace()[0].getLineNumber());
+			e.printStackTrace();
+		}
+		log.info("Exiting editRegistrationForRenewal() serviceImpl");
+		return response;
+	}
+	
+	public String renewalValidation(RegistrationMstr regMstr) {
+		log.info("Inside renewalValidation() : RegServiceImpl");
+		// FinancialYearUtil fyUtil=null;
+		try {
+			RegisterAdditionalDetails regAddDetails = additionalDetailsRepo.findByOrgId(regMstr.getOrgId())
+					.orElse(null);
+			
+			OrgOfficeDetails officeDetails = officeDetailsRepo.findByOrgOfficeCode(regMstr.getOrgOfficeCode())
+					.orElse(null);
+			if(officeDetails.getOrgCategory().equals(OrgConstants.ORG_CATEGORY.ORG_CATEGORY_RMC) ||
+					officeDetails.getOrgCategory().equals(OrgConstants.ORG_CATEGORY.ORG_CATEGORY_HOST) ||
+					officeDetails.getOrgCategory().equals(OrgConstants.ORG_CATEGORY.ORG_CATEGORY_BOARD)) {
+				return "INVALID_USER_FOR_RENEWAL";
+			}
+			
+			RegistrationStatus regStatus = regStatusRepo.findTopByOrgIdOrderByActionDateTimeDesc(regMstr.getOrgId())
+					.orElse(null);
+			
+			if(regStatus.getApplicationStatus().equals(OrgConstants.REGISTRATION_STATUS.SUBMITTED) || 
+					regStatus.getApplicationStatus().equals(OrgConstants.REGISTRATION_STATUS.SCRUTINY)) {
+				return "RENEWAL_REQUEST_PENDING_FOR_APPROVAL";
+			}
+			
+			if(! OrgUtil.isNeitherNullNorEmpty(regMstr.getFinancialYear())) {
+				return "Market Year Not Selected";
+			}
+			
+			LocalDate regValidity = regMstr
+									.getRegFeeValidity()
+									.toLocalDateTime()
+									.toLocalDate();
+			
+//			fyUtil = new FinancialYearUtil();
+			LocalDate currYearEnd = FinancialYearUtil.getCurrentFinancialYearEnd();
+			
+			String prevFY = FinancialYearUtil.getPreviousFinancialYearLabel();
+			
+			if (!regValidity.isEqual(currYearEnd)) {
+
+			    if (regValidity.isBefore(currYearEnd)) {
+
+			        if (!prevFY.equals(regMstr.getFinancialYear())) {
+			            return "Renewal not allowed.Kindly Update profile till " + prevFY ;
+			        }
+			    }
+
+			    if (regValidity.isAfter(currYearEnd)) {
+			       return "RENEWAL_FOR_MARKET_YEAR_NOT_ALLOWED";
+			    }
+			    
+			}
+			
+			String currentFY = FinancialYearUtil.getCurrentFinancialYearLabel();
+			
+			if(OrgUtil.isNeitherNullNorEmpty(regAddDetails.getMarketYearApp()) 
+					&& currentFY.equals(regAddDetails.getMarketYearApp())) {
+				
+				if(regMstr.getFinancialYear().equals(currentFY)) {
+					return "Please Renew For The Financial Year " + currentFY;
+				}
+			}
+			
+			LocalDate userValidity = regMstr.getRegFeeValidity().toLocalDateTime().toLocalDate();
+			FinancialYear[] fy = FinancialYearUtil.getPrevCurrentAndNextFinancialYear();
+			LocalDate prevYearEnd = fy[0].getEndDate();
+			LocalDate today = LocalDate.now();
+			
+			if (userValidity.isEqual(prevYearEnd)) {
+			    if (!currentFY.equals(regMstr.getFinancialYear())) {
+			    	return "Please Renew For The Financial Year " + currentFY + ".";     
+			    }
+			}
+			
+			if (userValidity.isBefore(prevYearEnd)) {
+			    return "Renewal For The Selected Market Year Not Allowed";
+			}
+			
+			if (userValidity.isAfter(prevYearEnd) && userValidity.isBefore(today)) {
+
+			    if (!currentFY.equals(regMstr.getFinancialYear())) {
+			        return "Please Renew For The Financial Year " + currentFY + ".";
+			    }
+			}
+			
+			boolean renewalExists =	additionalDetailsTempRepo
+									.existsByOrgIdAndMarketYearApp(regMstr.getOrgId(), regMstr.getFinancialYear());
+			
+			if (renewalExists
+			        && ! OrgConstants.REGISTRATION_STATUS.PENDING.equals(regStatus.getApplicationStatus())
+			        && !currentFY.equals(regMstr.getFinancialYear())) {
+
+			   return "RENEWAL_ALREADY_SUBMITTED_FOR_MARKET_YEAR";
+			}
+			
+
+		    FinancialYear currentFYObj = FinancialYearUtil.getCurrentFinancialYear();
+		    FinancialYear nextFYObj = new FinancialYear(
+		            currentFYObj.getStartDate().plusYears(1),
+		            currentFYObj.getEndDate().plusYears(1)
+		    );
+//		    FinancialYear laterFYObj = new FinancialYear(
+//		            currentFYObj.getStartDate().plusYears(2),
+//		            currentFYObj.getEndDate().plusYears(2)
+//		    );
+
+		    LocalDate nextYearEnd = nextFYObj.getEndDate();
+		    
+		    String nextFY = FinancialYearUtil.getNextFinancialYearLabel();
+		    String laterFY = FinancialYearUtil.getLaterFinancialYearLabel();
+			
+		    // Renewal already done for next FY
+		    if (userValidity.isEqual(nextYearEnd)
+		            && nextFY.equals(regMstr.getFinancialYear())) {
+
+		    	return "RENEWAL_ALREADY_SUBMITTED_FOR_MARKET_YEAR";
+		       
+		    }
+		    
+		    // Already active for current FY 
+		    if (userValidity.isEqual(currYearEnd)
+		            && currentFY.equals(regMstr.getFinancialYear())) {
+
+		        return "RENEWAL_ALREADY_SUBMITTED_FOR_MARKET_YEAR";
+		    }
+		    
+		    if (OrgUtil.isNeitherNullNorEmpty(regAddDetails.getMarketYearApp())
+		            && currentFY.equals(regAddDetails.getMarketYearApp())) {
+
+		        if (!nextFY.equals(regMstr.getFinancialYear())) {
+
+		            return "RENEWAL_FOR_MARKET_YEAR_NOT_ALLOWED, Please Renew For The Financial Year "+ nextFY ;
+		
+		        }
+		    }
+		    
+		    
+		    if (OrgUtil.isNeitherNullNorEmpty(regAddDetails.getMarketYearApp())
+		            && nextFY.equals(regAddDetails.getMarketYearApp())) {
+
+		        if (!laterFY.equals(regMstr.getFinancialYear())) {
+
+		            return "ERROR_CODES.RENEWAL_FOR_MARKET_YEAR_NOT_ALLOWED, Please Renew For The Financial Year " + laterFY;
+		      
+		        }
+		    }
+		    
+		    String prevMarketYear = regAddDetails.getMarketYearApp();
+		    String currentMarketYear = regMstr.getFinancialYear();
+
+		    if (OrgUtil.isNeitherNullNorEmpty(prevMarketYear)) {
+		        int prevYear = Integer.parseInt(prevMarketYear.substring(0, 2));
+		        int currYear = Integer.parseInt(currentMarketYear.substring(0, 2));
+
+		        if (prevYear > currYear) {
+		            return "PREV_YEAR_NOT_ALLOWED, Renewal For The Previous Market Year Not Allowed";
+		        }
+		    } else {
+		        return "Market Year Not Selected";
+		    }
+
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error(" Error in renewalValidation method :: RegistrationServiceImpl" + e.getMessage());
+		}
+		finally {
+			log.info(" Exiting from renewalValidation() method :: RegistrationServiceImpl");
+		}
+		return "RENEWAL_FAILED";
+	}
+	
+	public boolean isOrgEligibleForRenewal(String officeCode) {
+		OrgOfficeDetails officeDetails = officeDetailsRepo.findByOrgOfficeCode(officeCode).orElse(null);
+		if(officeDetails == null)
+			return false;
+		String orgCategory = officeDetails.getOrgCategory();
+		
+		OrgCategoryMaster orgCatMstr = orgCategoryRepo.findByOrgCategory(orgCategory).orElse(null);
+		
+		if(orgCatMstr == null)
+			return false;
+		
+		return orgCatMstr.isMember();	
+	}
+	
+	public String editRegistration(RegistrationMstr regMstr) {
+		log.info("Inside editRegistration :: RegServiceImpl " +  regMstr.getOrgId());
+		String response = null;
+		try {
+			if (!regMstrRepo.existsByOrgId(regMstr.getOrgId())) {
+			    return "REGISTRATION_FAILED";
+			}
+			
+			// insertIntoRegMstrArchive 
+			RegistrationMstrArchive regMstrArchive = new RegistrationMstrArchive();
+			regMstrArchive.setOrgId(regMstr.getOrgId());
+			regMstrArchive.setArchiveCreatedOn(LocalDateTime.now());
+			regMstrArchive.setArchiveCreatedBy(regMstr.getOrgId());
+			RegistrationMstrArchive saved = regMstrArchiveRepo.save(regMstrArchive);
+			if (saved == null || saved.getOrgId() == null) {
+			    log.error("Registration Mstr archive insert failed : {}", regMstr.getOrgId());
+			    return "REGISTRATION_FAILED";
+			}
+			
+			//update registration details here on save
+			RegistrationMstr savedRegMstr = regMstrRepo.save(regMstr);
+			if (savedRegMstr == null || savedRegMstr.getOrgId() == null) {
+			    log.error("Registration Mstr Updation failed : {}", regMstr.getOrgId());
+			    return "REGISTRATION_FAILED";
+			}
+			
+			RenewalHistory renewalHistory = new RenewalHistory();
+			renewalHistory.setOrgId(regMstr.getOrgId());
+			renewalHistory.setRequestedFromDate(regMstr.getRequestStartDate());
+			renewalHistory.setRequestedToDate(regMstr.getRequestEndDate());
+			renewalHistory.setStatus(OrgConstants.IS_PENDING);
+			
+			RenewalHistory savedRenHistory = renewalHistoryRepo.save(renewalHistory);
+			if (savedRenHistory == null || savedRenHistory.getOrgId() == null) {
+			    log.error("Renewal History Saved failed : {}", regMstr.getOrgId());
+			    return "REGISTRATION_FAILED";
+			}
+			
+			if(regMstr.getOrgRenewalStatus().equals(OrgConstants.RENEWAL_STATUS.NOT_APPLICABLE) 
+					|| regMstr.getOrgRenewalStatus().equals(OrgConstants.RENEWAL_STATUS.PENDING)
+					|| regMstr.getOrgRenewalStatus().equals(OrgConstants.YES)) {
+				RegisterAdditionalDetailsArchive regAddDetails = new RegisterAdditionalDetailsArchive();
+				regAddDetails.setOrgId(regMstr.getOrgId());
+				regAddDetails.setCreatedDt(LocalDateTime.now());
+				regAddDetails.setModifiedBy(regMstr.getCreatedBy());
+				RegisterAdditionalDetailsArchive savedAddDetails = additionalDetailsArchiveRepo.save(regAddDetails);
+				if (savedAddDetails == null || savedAddDetails.getOrgId() == null) {
+				    log.error("Registration addtional info Archive failed : " + regMstr.getOrgId());
+				    return "REGISTRATION_FAILED";
+				}
+			}
+			
+			
+			// FormFiveDetails Pending - Do Later if Required (Model, Repo , DB ready)
+			
+			
+			// Update User Mstr Details
+			UserMstr userObj = userMstrRepo.findByOrgId(regMstr.getOrgId());
+			if (userObj == null) {
+			    userObj = new UserMstr();
+			}
+
+		    userObj.setUserId("U" + regMstr.getOrgId());
+		    userObj.setUserName(regMstr.getOrgName());
+		    userObj.setUserMobile(regMstr.getOrgMobileNo());
+		   // userObj.setUserAddress(regMstr.getOrgAddress());
+		    userObj.setOrgId(regMstr.getOrgId());
+		   // userObj.setUserCategory(regMstr.getOrgCategory());
+		  
+		    userMstrRepo.save(userObj);
+			
+			// Update Account Master - if required Do Later 
+			
+			
+			
+		} catch (Exception e) {
+			log.error("REGISTRATION_FAILED + "+ e +" | "+ e.getMessage()+ " ::: Error at Line Number ::" + e.getStackTrace()[0].getLineNumber());
+			e.printStackTrace();
+		}
+		log.info("Exiting editRegistration()" + " serviceImpl");
+		return response;
+	}
+
 
 }

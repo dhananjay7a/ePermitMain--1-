@@ -1,5 +1,7 @@
 package com.organisation.service.impl;
 
+
+
 import com.epermit.Exception.UnauthorizedException;
 import com.organisation.dto.UserMappingDto;
 import com.organisation.model.UserMarketMapping;
@@ -68,6 +70,11 @@ public class UserMarketMapServiceImpl implements UserMarketMapService {
         if (claims == null) {
             throw new UnauthorizedException("Invalid Token");
         }
+     // 🆔 Extract userId : example UEPUMDL00007
+     			String userId = tokenService.extractUserId(token);
+
+     			// 🏢 Convert to orgId : EPUMDL00007
+     		//	String orgId = userId.startsWith("U") ? userId.substring(1) : userId;
 
         try {
             // Check if exists
@@ -83,7 +90,7 @@ public class UserMarketMapServiceImpl implements UserMarketMapService {
             entity.setUserId(usermarket.getUserId());
             entity.setMarketCode(usermarket.getMarketCode());
             entity.setIsActive("T");
-            entity.setCreatedBy(usermarket.getCreatedBy());
+            entity.setCreatedBy(userId);
             entity.setCreatedOn(LocalDateTime.now());
 
             userMarketMapRepository.save(entity);

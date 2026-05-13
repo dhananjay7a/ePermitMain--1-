@@ -7,14 +7,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Entity
 @Table(name = "un_state_district_mstr")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class StateDistrictMaster {
-
-    @EmbeddedId
+	
+	@EmbeddedId
     private StateDistrictId id;
 
     private String districtName;

@@ -47,11 +47,11 @@ import com.epermit.register.dto.ScrutinyRequestDTO;
 import com.epermit.register.dto.TermsAndConditionsDTO;
 import com.epermit.register.dto.TermsAndConditionsResponseDTO;
 import com.epermit.register.dto.UserDigiSignRequestDto;
-import com.epermit.register.responsehandler.ApiResponses;
-import com.epermit.register.responsehandler.ResponseBean;
 import com.organisation.constants.OrgConstants;
 import com.organisation.dto.ApprovalResponseDTO;
 import com.organisation.dto.ApproveRejectRegistrationDTO;
+import com.organisation.dto.ChangeDefaultPasswordDTO;
+import com.organisation.dto.ScrutinyListRequestDto;
 import com.organisation.model.MarketMstr;
 import com.organisation.model.MessageTracker;
 import com.organisation.model.OrgCategoryMaster;
@@ -60,6 +60,8 @@ import com.organisation.model.RegistrationMstr;
 import com.organisation.model.ResponseMessage;
 import com.organisation.model.UserMstr;
 import com.organisation.repository.DocumentUploadTempRepository;
+import com.organisation.responsehandler.ApiResponses;
+import com.organisation.responsehandler.ResponseBean;
 import com.organisation.security.TokenService;
 import com.organisation.service.ApprovalWorkflowService;
 import com.organisation.service.RegistrationService;
@@ -90,6 +92,10 @@ public class RegistrationController {
 
 	@Autowired
 	private ApprovalWorkflowService approvalWorkflowService;
+	
+	@Autowired
+	private ResponseBean responseBean;
+
 
 	private static final Logger log = LoggerFactory.getLogger(RegistrationController.class);
 
@@ -979,5 +985,105 @@ public class RegistrationController {
 					.body(responseBean.getResponse());
 		}
 	}
+	
+	
+	
+	//Scrutiny list
+	
+	
 
+    @PostMapping("/ScrutinyList")
+    public Object getScrutinyList(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestBody ScrutinyListRequestDto requestDto) {
+    	//ResponseBean responseBean = new ResponseBean();
+
+        try {
+
+            // 🔎 Basic null validation
+            if (requestDto.getApproverType() == null) {
+
+                responseBean.AllResponse("Nulltype", null);
+                return responseBean.getResponse();
+            }
+
+            regService.getScrutinyList(token, requestDto);
+
+            return responseBean.getResponse();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            responseBean.AllResponse("Error", e.getMessage());
+            return responseBean.getResponse();
+        }
+    }
+    
+    
+    @PostMapping("/FinalApproverList")
+    public Object getFinalApproverList(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestBody ScrutinyListRequestDto requestDto) {
+    	//ResponseBean responseBean = new ResponseBean();
+
+        try {
+
+            // 🔎 Basic null validation
+            if (requestDto.getApproverType() == null) {
+
+                responseBean.AllResponse("Nulltype", null);
+                return responseBean.getResponse();
+            }
+
+            regService.getFinalApproverList(token, requestDto);
+
+            return responseBean.getResponse();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            responseBean.AllResponse("Error", e.getMessage());
+            return responseBean.getResponse();
+        }
+    }
+    
+    
+    
+    //default password change api
+    
+    
+    @PostMapping("/changeDefaultPassword")
+    public ApiResponses changePassword(@RequestBody ChangeDefaultPasswordDTO request) {
+
+        ResponseBean responseBean = new ResponseBean();
+
+ 
+        try {   
+        	
+            regService.changeDefaultPassword(request, responseBean);
+        } catch (Exception e) {
+            log.error("Error changing password", e);
+            responseBean.AllResponse("Error", null);
+        }
+
+        return responseBean.getResponse();
+    }
+
+//Renewal code by Rehan
+    
+    
+    @PostMapping("/editRegForRenewal")
+	public ResponseEntity<String> editRegistrationForRenewal(@RequestBody FinalRegistrationFormDTO formDTO) {
+		log.info("Inside editRegistrationForRenewal():: RegController");
+		try {
+			regService.editRegistrationForRenewal(formDTO);
+			return ResponseEntity.ok("Renewal Done successfully.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Renewal failed: " + e.getMessage());
+		}
+	}
+    
+    
+    
 }

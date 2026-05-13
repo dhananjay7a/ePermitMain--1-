@@ -10,4 +10,6 @@ import com.organisation.model.OrgOfficeDetails;
 @Repository
 public interface OfficeDetailsRepository extends JpaRepository<OrgOfficeDetails, Long>{
 	Optional<OrgOfficeDetails> findByDistrictCodeAndOrgCategory(String districtCode, String orgCategory);
+	Optional<OrgOfficeDetails> findByOrgOfficeCode(String orgOfficeCode);
+	
 }

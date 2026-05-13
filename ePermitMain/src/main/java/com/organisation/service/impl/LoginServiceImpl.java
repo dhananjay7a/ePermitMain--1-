@@ -12,15 +12,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.organisation.model.UserMstr;
 import com.organisation.repository.MessageTrackerRepository;
 import com.organisation.repository.UserMstrRepository;
+import com.organisation.responsehandler.ApiResponses;
+import com.organisation.responsehandler.ResponseBean;
 import com.organisation.security.TokenService;
 import com.organisation.service.LoginService;
+import com.organisation.service.PasswordService;
 
 import io.jsonwebtoken.Claims;
 
 import com.epermit.register.dto.LogOutDto;
 import com.epermit.register.dto.LoginDto;
-import com.epermit.register.responsehandler.ApiResponses;
-import com.epermit.register.responsehandler.ResponseBean;
 
 @Service
 public class LoginServiceImpl implements LoginService {
@@ -46,52 +47,65 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public void login(ResponseBean responseBean, LoginDto dto, String ip) throws Exception {
 
-        String userId = dto.getUser_id().trim();        
-        String orgId  = userId.startsWith("U")
-                            ? userId.substring(1)
-                            : userId;                  
+        String userId = dto.getUser_id().trim();
 
-        // Find registered user
-        Map<String, Object> user = repo.findUserById(userId);
-        if (user == null) {
+        Map<String, Object> userMap = repo.findUserById(userId);
+        if (userMap == null) {
             responseBean.AllResponse("Invalid", null);
             return;
         }
 
-        String username = (String) user.get("user_name");
-        String mobile   = (String) user.get("user_mobile");
+        String username = (String) userMap.get("user_name");
 
-        if (mobile == null || mobile.trim().isEmpty()) {
+        // 🔥 Fetch User Entity for changed password
+        UserMstr userEntity = repo.findByUserId(userId);
+
+        boolean passwordMatched = false;
+
+        // 1️⃣ First check changed password
+        if (userEntity != null && userEntity.getUserPassword() != null) {
+
+            String encryptedInput =
+                    PasswordService.encrypt(dto.getUser_password().trim());
+
+            if (encryptedInput.equals(userEntity.getUserPassword())) {
+                passwordMatched = true;
+            }
+        }
+
+        // 2️⃣ If not matched → check default OTP password
+        if (!passwordMatched) {
+
+            String mobile = (String) userMap.get("user_mobile");
+
+            String rawMsg = mtrepo.findLatestMessage(mobile, userId);
+
+            if (rawMsg != null && rawMsg.contains("`")) {
+
+                String[] parts = rawMsg.split("`");
+
+                if (parts.length >= 2) {
+                    String dbPassword = parts[1].trim();
+
+                    if (dto.getUser_password().trim().equals(dbPassword)) {
+                        passwordMatched = true;
+                    }
+                }
+            }
+        }
+
+        // ❌ If still not matched
+        if (!passwordMatched) {
             responseBean.AllResponse("Invalid", null);
             return;
         }
 
-        // Find OTP message for ORG ID
-        String rawMsg = mtrepo.findLatestMessage(mobile, orgId);
-        if (rawMsg == null || !rawMsg.contains("`")) {
-            responseBean.AllResponse("Invalid", null);
-            return;
-        }
-
-        String[] parts = rawMsg.split("`");
-        if (parts.length < 2) {
-            responseBean.AllResponse("Invalid", null);
-            return;
-        }
-
-        String dbPassword = parts[1].trim();
-
-        // Match OTP/password
-        if (!dto.getUser_password().trim().equals(dbPassword)) {
-            responseBean.AllResponse("Invalid", null);
-            return;
-        }
-     // ⭐ UNLOCK USER ON LOGIN
+        // ✅ Unlock user
         repo.unlockUser(userId);
 
-        // ✅ Generate token using REAL user ID
+        // ✅ Generate token
         String token = tokenService.generateToken(userId, username, "ROLE_USER");
-        // ⭐ STORE TOKEN IN DATABASE
+
         repo.updateToken(userId, token);
 
         Map<String, Object> loginData = new HashMap<>();

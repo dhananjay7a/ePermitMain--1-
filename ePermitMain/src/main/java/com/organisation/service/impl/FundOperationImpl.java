@@ -1,5 +1,6 @@
 package com.organisation.service.impl;
 
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import com.epermit.Exception.UnauthorizedException;
 import com.organisation.dto.DepositWithdrawalBookDTO;
 import com.organisation.model.CashBook;
 import com.organisation.model.DepositWithdrawalBook;
+import com.organisation.model.RegistrationMaster;
 import com.organisation.model.RegistrationMstr;
 import com.organisation.repository.RegistrationMstrRepository;
 import com.organisation.security.TokenService;
@@ -35,6 +37,9 @@ public class FundOperationImpl implements FundsOperationService {
     private CashBookService cashBookService;
 
     @Autowired
+    private RegistrationServiceImpl registrationService;
+
+    @Autowired
     private RegistrationMstrRepository registrationRepository;
 
     @Override
@@ -51,6 +56,7 @@ public class FundOperationImpl implements FundsOperationService {
         }
 
         String userId = ts.extractUserId(token);
+        String orgId = userId.startsWith("U") ? userId.substring(1) : userId;
 
         request.normalizePurpose();
 
@@ -95,13 +101,14 @@ public class FundOperationImpl implements FundsOperationService {
             regMstr.setRegBookType("CASH_BOOK");
             regMstr.setRegReceiptNo(receiptNo);
             regMstr.setIsRegistraionFeePaid(true);
+           
 
-        } else if ("DEPOSIT".equalsIgnoreCase(deposit.getInstrumentType())) {
+        } else if("DEPOSIT".equalsIgnoreCase(deposit.getInstrumentType())) {
             regMstr.setRegBookType("DEPOSIT_WITHDRAWAL_BOOK");
             regMstr.setRegReceiptNo(deposit.getTrnsNo());
             regMstr.setIsRegistraionFeePaid(true);
 
-        } else {
+        }else{
             return;
         }
 
@@ -176,6 +183,7 @@ public class FundOperationImpl implements FundsOperationService {
         }
 
         String userId = ts.extractUserId(token);
+        String orgId = userId.startsWith("U") ? userId.substring(1) : userId;
 
         // Call the repository method with all parameters
         List<DepositWithdrawalBookDTO> depositList = depositBookService.getDepositDetails(request, token);
